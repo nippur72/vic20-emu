@@ -188,15 +188,15 @@ typedef struct {
     uint16_t count;     /* count down with clock frequency */
     uint16_t period;    /* counter reload value */
     uint8_t sreg;       /* shift register */
-    uint8_t bit;        /* toggled between 0 and 1 */
     uint8_t enabled;    /* 1 if enabled */
 } m6561_voice_t;
 
 typedef struct {
     uint16_t count;
     uint16_t period;
-    uint32_t shift;
-    uint8_t bit;
+    uint8_t sreg;      /* 8 blit shift register */
+    uint16_t LFSR;     /* 16 bit LFSR */
+    uint8_t LFSR0;     /* bit LFSR(0) at previous step, for edge detection */
     uint8_t enabled;
 } m6561_noise_t;
 
@@ -315,7 +315,6 @@ void m6561_init(m6561_t* vic, const m6561_desc_t* desc) {
     vic->sound.sample_period = (desc->tick_hz * _M6561_FIXEDPOINT_SCALE) / desc->sound_hz;
     vic->sound.sample_counter = vic->sound.sample_period;
     vic->sound.sample_mag = desc->sound_magnitude;
-    vic->sound.noise.shift = 0x7FFFFC;
 }
 
 static void _m6561_reset_crt(m6561_t* vic) {
@@ -345,7 +344,9 @@ static void _m6561_reset_audio(m6561_t* vic) {
     }
     memset(&vic->sound.noise, 0, sizeof(m6561_noise_t));
     vic->sound.volume = 0;
-    vic->sound.noise.shift = 0x7FFFF8;
+    vic->sound.noise.sreg = 0;
+    vic->sound.noise.LFSR = 0;
+    vic->sound.noise.LFSR0 = 0;
 }
 
 void m6561_reset(m6561_t* vic) {
@@ -396,7 +397,6 @@ static void _m6561_regs_dirty(m6561_t* vic) {
     vic->sound.voice[2].enabled = 0 != (vic->regs[12] & 0x80);
     vic->sound.voice[2].period = 4 * (0x80 - (vic->regs[12] & 0x7F));
     vic->sound.noise.enabled = 0 != (vic->regs[13] & 0x80);
-    /* 8 factor is not a bug, tweaked to 'sound right' */
     vic->sound.noise.period = 8 * (0x80 - (vic->regs[13] & 0x7F));
     vic->sound.volume = vic->regs[14] & 0xF;
 }
@@ -542,18 +542,6 @@ static void _m6561_tick_video(m6561_t* vic) {
 }
 
 /*--- audio engine code ---*/
-#define _M6561_BIT(val,bitnr) ((val>>bitnr)&1)
-static inline float _m6561_noise_ampl(uint32_t noise_shift) {
-    uint32_t amp = (_M6561_BIT(noise_shift,22)<<7) |
-                   (_M6561_BIT(noise_shift,20)<<6) |
-                   (_M6561_BIT(noise_shift,16)<<5) |
-                   (_M6561_BIT(noise_shift,13)<<4) |
-                   (_M6561_BIT(noise_shift,11)<<3) |
-                   (_M6561_BIT(noise_shift,7)<<2) |
-                   (_M6561_BIT(noise_shift,4)<<1) |
-                   (_M6561_BIT(noise_shift,2)<<0);
-    return ((float)amp) / 256.0f;
-}
 
 /* center positive volume value around zero */
 static inline float _m6561_dcadjust(m6561_sound_t* snd, float s) {
@@ -579,33 +567,43 @@ static uint64_t _m6561_tick_audio(m6561_t* vic, uint64_t pins) {
             voice->count--;
         }
 
-        voice->bit = voice->sreg & 1;
-
         if (voice->enabled) {
-            if(voice->bit) snd->sample_accum += 1.0f;
+            if(voice->sreg & 1) snd->sample_accum += 1.0f;
         }
         else {
             snd->sample_accum += 0.5f;
         }
     }
-    /* tick noice channel */
+    /* tick noise channel */
     {
         m6561_noise_t* noise = &snd->noise;
         if (noise->count == 0) {
             noise->count = noise->period;
-            noise->bit = !noise->bit;
-            if (noise->bit) {
-                uint32_t s = noise->shift;
-                /* FIXME(?): m6581 uses (s>>17), MAME is (s>>13) */
-                uint32_t new_bit = ((s>>22)^(s>>13)) & 1;
-                noise->shift = ((s<<1)|new_bit) & 0x007FFFFF;
+
+            uint8_t bit0 = noise->LFSR & 1;
+
+            // shifts the 8 bit SR at edge detection of LFSR[0]
+            if (noise->LFSR0 == 0 && bit0 == 1) {
+                noise->sreg = (noise->sreg << 1) | (~((noise->sreg & 128) >> 7) & noise->enabled);
             }
+
+            // shifts the 16 bit LFSR
+            noise->LFSR0 = bit0;  // save bit for edge detection
+            uint8_t gate1 = ((noise->LFSR >> 3) ^ (noise->LFSR >> 12)) & 1;
+            uint8_t gate2 = ((noise->LFSR >> 14) ^ (noise->LFSR >> 15)) & 1;
+            uint8_t gate3 = ~(gate1 ^ gate2);
+            bit0 = ~(gate3 & noise->enabled);
+            noise->LFSR = (noise->LFSR << 1) | bit0;
         }
         else {
             noise->count--;
         }
-        if (noise->bit && noise->enabled) {
-            snd->sample_accum += _m6561_noise_ampl(noise->shift);
+
+        if (noise->enabled) {
+            if (noise->sreg & 1) snd->sample_accum += 1.0f;
+        }
+        else {
+            snd->sample_accum += 0.5f;
         }
     }
     snd->sample_accum_count += 1.0f;

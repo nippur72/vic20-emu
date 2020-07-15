@@ -1,6 +1,5 @@
 "use strict";
 
-// TODO restore key
 // TODO uppercase/lowercase (shift lock)
 // TODO fix audio engine
 // TODO submit keyboard changes
@@ -8,6 +7,7 @@
 // TODO filesystem load, save, download, dir
 // TODO joystick interface
 // TODO fix for alt/cbm/shift what keyboard?
+// TODO shift problem
 
 /******************/
 

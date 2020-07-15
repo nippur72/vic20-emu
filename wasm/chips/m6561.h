@@ -187,6 +187,7 @@ typedef struct {
 typedef struct {
     uint16_t count;     /* count down with clock frequency */
     uint16_t period;    /* counter reload value */
+    uint8_t sreg;       /* shift register */
     uint8_t bit;        /* toggled between 0 and 1 */
     uint8_t enabled;    /* 1 if enabled */
 } m6561_voice_t;
@@ -389,14 +390,14 @@ static void _m6561_regs_dirty(m6561_t* vic) {
     vic->mem.c_addr_base = (((vic->regs[5]>>4)&0xF)<<10) | // A13..A10
                            (((vic->regs[2]>>7)&1)<<9);    // A9
     vic->sound.voice[0].enabled = 0 != (vic->regs[10] & 0x80);
-    vic->sound.voice[0].period = 0x80 * (0x80 - (vic->regs[10] & 0x7F));
+    vic->sound.voice[0].period = 16 * (0x80 - (vic->regs[10] & 0x7F));
     vic->sound.voice[1].enabled = 0 != (vic->regs[11] & 0x80);
-    vic->sound.voice[1].period = 0x40 * (0x80 - (vic->regs[11] & 0x7F));
+    vic->sound.voice[1].period = 8 * (0x80 - (vic->regs[11] & 0x7F));
     vic->sound.voice[2].enabled = 0 != (vic->regs[12] & 0x80);
-    vic->sound.voice[2].period = 0x20 * (0x80 - (vic->regs[12] & 0x7F));
+    vic->sound.voice[2].period = 4 * (0x80 - (vic->regs[12] & 0x7F));
     vic->sound.noise.enabled = 0 != (vic->regs[13] & 0x80);
-    /* 0x40 factor is not a bug, tweaked to 'sound right' */
-    vic->sound.noise.period = 0x40 * (0x80 - (vic->regs[13] & 0x7F));
+    /* 8 factor is not a bug, tweaked to 'sound right' */
+    vic->sound.noise.period = 8 * (0x80 - (vic->regs[13] & 0x7F));
     vic->sound.volume = vic->regs[14] & 0xF;
 }
 
@@ -569,15 +570,22 @@ static uint64_t _m6561_tick_audio(m6561_t* vic, uint64_t pins) {
     /* tick tone voices */
     for (int i = 0; i < 3; i++) {
         m6561_voice_t* voice = &snd->voice[i];
+
         if (voice->count == 0) {
             voice->count = voice->period;
-            voice->bit = !voice->bit;
+            voice->sreg = ((voice->sreg & 0b01111111) << 1) | (~((voice->sreg & 128) >> 7) & voice->enabled);
         }
         else {
             voice->count--;
         }
-        if (voice->bit && voice->enabled) {
-            snd->sample_accum += 1.0f;
+
+        voice->bit = voice->sreg & 1;
+
+        if (voice->enabled) {
+            if(voice->bit) snd->sample_accum += 1.0f;
+        }
+        else {
+            snd->sample_accum += 0.5f;
         }
     }
     /* tick noice channel */

@@ -37,6 +37,8 @@ function load_wasm(ready_cb) {
       vic20.key_down = instance.cwrap("sys_key_down" , null, ['number'] );
       vic20.key_up   = instance.cwrap("sys_key_up"   , null, ['number'] );
 
+      vic20.load_prg = instance.cwrap("sys_quick_load"   , null, ['array', 'number'] );
+
       /*
       cpu_init            = instance.cwrap("cpu_init", null);
       cpu_reset           = instance.cwrap("cpu_reset", null);

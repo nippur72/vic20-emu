@@ -74,6 +74,11 @@ async function save(filename, p1, p2) {
 }
 
 function loadBytes(bytes, address, fileName) {
+
+   let buffer = new Uint8Array(bytes.buffer);
+   vic20.load_prg(buffer, bytes.length);
+
+   /*
    const startAddress = (address === undefined) ? mem_read_word(BASTXT) : address;
    const endAddress = startAddress + bytes.length - 1;
 
@@ -83,9 +88,11 @@ function loadBytes(bytes, address, fileName) {
 
    // modify end of basic program pointer   
    if(startAddress === mem_read_word(BASTXT)) mem_write_word(PROGND, endAddress+1);
+   */
 
    if(fileName === undefined) fileName = "autoload";
-   console.log(`loaded "${fileName}" ${bytes.length} bytes from ${hex(startAddress,4)}h to ${hex(endAddress,4)}h`);
+   //console.log(`loaded "${fileName}" ${bytes.length} bytes from ${hex(startAddress,4)}h to ${hex(endAddress,4)}h`);
+   console.log(`loaded "${fileName}" ${bytes.length} bytes`);
 }
 
 async function load_file(fileName, address) {   

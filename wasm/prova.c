@@ -86,6 +86,11 @@ void sys_key_up(int key_code) {
    vic20_key_up(&sys, key_code);
 }
 
+EMSCRIPTEN_KEEPALIVE
+void sys_quick_load(uint8_t *bytes, int num_bytes) {
+   vic20_quickload(&sys, bytes, num_bytes);
+}
+
 ///*
 ///* initialize a new VIC-20 instance */
 //void vic20_init(vic20_t* sys, const vic20_desc_t* desc);

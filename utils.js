@@ -71,6 +71,8 @@ function crun(filename) {
 }
 
 function paste(text) {
+   return;
+
    const lines = text.split("\n");
    for(let t=0; t<lines.length; t++) {
       const linea = lines[t];
@@ -83,6 +85,7 @@ function paste(text) {
 }
 
 function pasteLine(line) {
+   return;
    lm80c_ctc_enable(false);
    renderLines(262);
 

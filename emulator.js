@@ -1,5 +1,13 @@
 "use strict";
 
+// TODO restore key
+// TODO uppercase/lowercase (shift lock)
+// TODO fix audio engine
+// TODO submit keyboard changes
+// TODO modify 6561 to trigger a callback at the end of the video
+// TODO filesystem load, save, download, dir
+// TODO joystick interface
+
 /******************/
 
 const cpuSpeed = 3686400;    // 7372800/2 number given by @leomil72

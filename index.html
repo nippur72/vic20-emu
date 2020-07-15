@@ -1,0 +1,161 @@
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />					
+      <style>
+         .keyboardpanel
+         {
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            text-align: center;
+         }
+
+         .vickey
+         {
+            padding: 0px;
+            width: 27px;
+            height: 40px;
+            margin: 2px;
+            margin-bottom: 3px;
+            font-size: 25px;
+            font-weight: bold;
+            font-family: monospace;
+            color: white;
+            background: #666;
+            border: 0px solid;
+            border-radius: 4px;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+         }
+
+         .vickey:active
+         {
+            background: #aaa;
+         }
+
+         .halfspace
+         {
+            width: 00px;
+            height: 120px;
+            margin: 2px;
+            background: none;
+            border: 0px solid;
+            padding: 0px;
+            user-select: none;
+            -moz-user-select: none;
+            -webkit-user-select: none;
+         }
+      </style>
+   </head>
+   
+
+<body style="padding:0; margin:0; background: black; color: green;">
+
+   <div style="margin: auto" id="screen">
+      <div id="LED" style="position: absolute; background-color: orange; visibility: hidden;">&nbsp;&nbsp;&nbsp;&nbsp;</div>
+      <canvas id="canvas" name="canvas" width="576" height="480" style="border:black 0px solid; padding: 0px; margin:auto;"></canvas>
+   </div>
+
+   <!--
+   <div class="keyboardpanel">
+      <button class="vickey" onclick="sendkey(49)">1</button>
+      <button class="vickey" onclick="sendkey(50)">2</button>
+      <button class="vickey" onclick="sendkey(51)">3</button>
+      <button class="vickey" onclick="sendkey(52)">4</button>
+      <button class="vickey" onclick="sendkey(53)">5</button>
+      <button class="vickey" onclick="sendkey(54)">6</button>
+      <button class="vickey" onclick="sendkey(55)">7</button>
+      <button class="vickey" onclick="sendkey(56)">8</button>
+      <button class="vickey" onclick="sendkey(57)">9</button>
+      <button class="vickey" onclick="sendkey(48)">0</button><br>
+
+      <button class="vickey" onclick="sendkey(81)">Q</button>
+      <button class="vickey" onclick="sendkey(87)">W</button>
+      <button class="vickey" onclick="sendkey(69)">E</button>
+      <button class="vickey" onclick="sendkey(82)">R</button>
+      <button class="vickey" onclick="sendkey(84)">T</button>
+      <button class="vickey" onclick="sendkey(89)">Y</button>
+      <button class="vickey" onclick="sendkey(85)">U</button>
+      <button class="vickey" onclick="sendkey(73)">I</button>
+      <button class="vickey" onclick="sendkey(79)">O</button>
+      <button class="vickey" onclick="sendkey(80)">P</button><br>
+      <span class="halfspace"></span>
+      <button class="vickey" onclick="sendkey(65)">A</button>
+      <button class="vickey" onclick="sendkey(83)">S</button>
+      <button class="vickey" onclick="sendkey(68)">D</button>
+      <button class="vickey" onclick="sendkey(70)">F</button>
+      <button class="vickey" onclick="sendkey(71)">G</button>
+      <button class="vickey" onclick="sendkey(72)">H</button>
+      <button class="vickey" onclick="sendkey(74)">J</button>
+      <button class="vickey" onclick="sendkey(75)">K</button>
+      <button class="vickey" onclick="sendkey(76)">L</button><br>
+
+      <button class="vickey" onclick="sendkey(32)">&nbsp;</button>
+      <button class="vickey" onclick="sendkey(90)">Z</button>
+      <button class="vickey" onclick="sendkey(88)">X</button>
+      <button class="vickey" onclick="sendkey(67)">C</button>
+      <button class="vickey" onclick="sendkey(86)">V</button>
+      <button class="vickey" onclick="sendkey(66)">B</button>
+      <button class="vickey" onclick="sendkey(78)">N</button>
+      <button class="vickey" onclick="sendkey(77)">M</button>
+      <button class="vickey" onclick="sendkey(32)">&nbsp;</button>
+      <button class="vickey" onclick="sendkey(13)">&nbsp;</button><br>
+
+      <button class="vickey" onclick="sendkey(81)">,</button>
+      <button class="vickey" onclick="sendkey(87)">.</button>
+      <button class="vickey" onclick="sendkey(69)">@</button>
+      <button class="vickey" onclick="sendkey(82)">+</button>
+      <button class="vickey" onclick="sendkey(84)">-</button>
+      <button class="vickey" onclick="sendkey(89)">*</button>
+      <button class="vickey" onclick="sendkey(85)">/</button>
+      <button class="vickey" onclick="sendkey(73)">&lt;</button>
+      <button class="vickey" onclick="sendkey(79)">&gt;</button>
+      <button class="vickey" onclick="sendkey(80)">\</button><br>
+   </div>
+   -->
+
+   <!-- allows to "Save As..." programs from the emulator -->
+   <script type="text/javascript" src="FileSaver.js"></script>
+
+   <!-- allows to used a keyval store with IndexedDB -->
+   <script type="text/javascript" src="idb-keyval-iife.min.js"></script>
+
+   <!-- core emulator files -->
+   <script type="text/javascript" src="autoload.js"></script>
+   <script type="text/javascript" src="keyboard_IT.js"></script>
+   <script type="text/javascript" src="keyboard.js"></script>
+   <script type="text/javascript" src="video.js"></script>
+   <script type="text/javascript" src="utils.js"></script>
+   <script type="text/javascript" src="printer.js"></script>
+   <script type="text/javascript" src="filesystem.js"></script>
+   <script type="text/javascript" src="wav-decoder.js"></script>
+   <script type="text/javascript" src="wav-encoder.js"></script>
+   <script type="text/javascript" src="browser.js"></script>
+   <script type="text/javascript" src="audio.js"></script>
+   <script type="text/javascript" src="emulator.js"></script>
+</body>
+</html>
+
+<script type="text/javascript" src="emscripten_module.wasm.array.js"></script>
+<script type="text/javascript" src="emscripten_module.js"></script>
+<script type="text/javascript" src="emscripten_wrapper.js"></script>
+
+<script>
+   load_wasm(main);
+   // main();
+</script>
+
+<!--
+<script>
+	function sendkey(key)
+	{
+      pasteLine(String.fromCharCode(key));
+      /*
+		applyKey(key,false);
+      setTimeout(function() { applyKey(key,true) },100);
+      */
+	}
+</script>
+-->

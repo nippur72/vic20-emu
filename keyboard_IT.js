@@ -87,6 +87,6 @@ function pckey_to_hardware_keys_ITA(code, key, e) {
    //if(code === "PageDown")     hardware_keys.push(  );
    //if(code === "CapsLock")     hardware_keys.push(  );
 
-   console.log(hardware_keys);
+   //console.log(hardware_keys);
    return hardware_keys;
 }

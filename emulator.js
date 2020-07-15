@@ -39,12 +39,12 @@ function renderAllLines() {
 
       if(key_event.type === "press") {
          let keys = key_event.hardware_keys;
-         keys.forEach((k) => console.log(k));
+         //keys.forEach((k) => console.log(k));
          keys.forEach((k) => vic20.key_down(k));
       }
       else if(key_event.type === "release") {
          let keys = key_event.hardware_keys;
-         keys.forEach((k) => console.log(k));
+         //keys.forEach((k) => console.log(k));
          keys.forEach((k) => vic20.key_up(k));
       }
    }

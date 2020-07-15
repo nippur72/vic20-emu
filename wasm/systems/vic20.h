@@ -63,8 +63,6 @@ extern "C" {
 #endif
 
 #define VIC20_FREQUENCY (1108404)
-#define VIC20_MAX_AUDIO_SAMPLES (1024)        /* max number of audio samples in internal sample buffer */
-#define VIC20_DEFAULT_AUDIO_SAMPLES (128)     /* default number of samples in internal sample buffer */ 
 
 /* VIC-20 joystick types (only one joystick supported) */
 typedef enum {
@@ -473,7 +471,7 @@ static uint64_t _vic20_tick(vic20_t* sys, uint64_t pins) {
             PA6:    in: CASS SENSE
             PA7:    SERIAL ATN OUT (???)
 
-            CA1:    in: RESTORE KEY(???)
+            CA1:    in: RESTORE KEY
             CA2:    out: CASS MOTOR
 
         VIA1 Port B input:
@@ -483,10 +481,12 @@ static uint64_t _vic20_tick(vic20_t* sys, uint64_t pins) {
     */
     {
         // FIXME: SERIAL PORT
-        // FIXME: RESTORE key to M6522_CA1
         via1_pins |= sys->via1_joy_mask | (M6522_PA0|M6522_PA1|M6522_PA7);
         if (sys->cas_port & VIC20_CASPORT_SENSE) {
             via1_pins |= M6522_PA6;
+        }
+        if(sys->kbd.scanout_column_masks[8] & 1) {
+            via1_pins |= M6522_CA1;  /* RESTORE key is pressed */
         }
         via1_pins = m6522_tick(&sys->via_1, via1_pins);
         if (via1_pins & M6522_CA2) {
@@ -577,7 +577,7 @@ void vic20_exec(vic20_t* sys, uint32_t micro_seconds) {
         pins = _vic20_tick(sys, pins);
     }
     sys->pins = pins;
-    kbd_update(&sys->kbd);
+    kbd_update(&sys->kbd, micro_seconds);
 }
 
 static uint16_t _vic20_vic_fetch(uint16_t addr, void* user_data) {
@@ -635,14 +635,11 @@ static void _vic20_init_key_map(vic20_t* sys) {
     kbd_register_key(&sys->kbd, 0x01, 0, 7, 0);    /* del */
     kbd_register_key(&sys->kbd, 0x0D, 1, 7, 0);    /* return */
     kbd_register_key(&sys->kbd, 0x03, 3, 0, 0);    /* stop */
-
     kbd_register_key(&sys->kbd, 0x04, 1, 0, 0);    /* left arrow */
     kbd_register_key(&sys->kbd, 0x05, 7, 6, 0);    /* home */
     kbd_register_key(&sys->kbd, 0x06, 7, 6, 1);    /* clr */
-
     kbd_register_key(&sys->kbd, 0x0E, 2, 0, 0);    /* ctrl */
     kbd_register_key(&sys->kbd, 0x0F, 5, 0, 0);    /* C= key */
-
     kbd_register_key(&sys->kbd, 0xF1, 4, 7, 0);
     kbd_register_key(&sys->kbd, 0xF2, 4, 7, 1);
     kbd_register_key(&sys->kbd, 0xF3, 5, 7, 0);
@@ -651,6 +648,9 @@ static void _vic20_init_key_map(vic20_t* sys) {
     kbd_register_key(&sys->kbd, 0xF6, 6, 7, 1);
     kbd_register_key(&sys->kbd, 0xF7, 7, 7, 0);
     kbd_register_key(&sys->kbd, 0xF8, 7, 7, 1);
+
+    kbd_register_key(&sys->kbd, 0xFF, 0, 8, 0);   /* restore key is mapped on a separate line outside  */
+                                                  /* the keyboard matrix and routed to VIA1 pin CA1 */
 }
 
 bool vic20_quickload(vic20_t* sys, const uint8_t* ptr, int num_bytes) {

@@ -1,8 +1,16 @@
-# LM80C Javascript emulator
+# VIC20 Javascript emulator
 
-A JavaScript emulator for the [LM80C](https://github.com/leomil72/LM80C) computer by Leonardo Miliani.
+A JavaScript emulator for the VIC20 computer.
 
-Open the emulator directly in your browser: [lm80c-emu](https://nippur72.github.io/lm80c-emu/)
+This emulator is based on the amazing work of Andre Weissflog
+
+https://github.com/floooh/chips-test
+https://github.com/floooh/chips-test
+
+Copyright (c) 2017 Andre Weissflog
+
+
+Open the emulator directly in your browser: [vic20-emu](https://nippur72.github.io/vic20-emu/)
 
 LOADING AND SAVING FILES
 ========================

@@ -1,25 +1,23 @@
 {
-  "name": "lm80c-emu",
+  "name": "vic20-emu",
   "version": "0.0.1",
-  "description": "LM80C emulator",
-  "main": "elect.js",
+  "description": "VIC20 emulator",
   "scripts": {
-    "start": "electron electron.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nippur72/lm80c-emu.git"
+    "url": "git+https://github.com/nippur72/vic20-emu.git"
   },
   "keywords": [
-    "lm80c"
+    "vic20"
   ],
   "author": "Antonino Porcino <nino.porcino@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/nippur72/lm80c-emu/issues"
+    "url": "https://github.com/nippur72/vic20-emu/issues"
   },
-  "homepage": "https://github.com/nippur72/lm80c-emu#readme",
+  "homepage": "https://github.com/nippur72/vic20-emu#readme",
   "dependencies": {
     "file-saver": "^1.3.8",
     "idb-keyval": "^3.1.0",

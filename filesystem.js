@@ -1,4 +1,4 @@
-const STORAGE_KEY = "lm80c";
+const STORAGE_KEY = "vic20emu";
 
 const idb = idbKeyval;
 const store = new idb.Store(STORAGE_KEY, STORAGE_KEY);

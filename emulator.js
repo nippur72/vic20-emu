@@ -7,6 +7,7 @@
 // TODO modify 6561 to trigger a callback at the end of the video
 // TODO filesystem load, save, download, dir
 // TODO joystick interface
+// TODO fix for alt/cbm/shift what keyboard?
 
 /******************/
 

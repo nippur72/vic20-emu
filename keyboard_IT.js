@@ -21,7 +21,7 @@
    */
 
 function pckey_to_hardware_keys_ITA(code, key, e) {
-   //console.log(code, key, e);
+   console.log(code, key, e);
 
    let hardware_keys = [];
 
@@ -68,8 +68,10 @@ function pckey_to_hardware_keys_ITA(code, key, e) {
    //if(code === "End")          hardware_keys.push( KEY_SHIFT, KEY_CLR_HOME );
 
    //if(code === "NumpadEnter")  hardware_keys.push( KEY_RETURN  );
-   //if(code === "ControlLeft")  hardware_keys.push( KEY_CTRL  );
-   //if(code === "ControlRight") hardware_keys.push( KEY_CTRL  );
+
+   if(code === "ControlLeft")  hardware_keys.push( 0x0E );
+   if(code === "ControlRight") hardware_keys.push( 0x0E );
+   if(code === "AltLeft")      hardware_keys.push( 0x0F );
 
    //if(code === "Tab")          hardware_keys.push( KEY_RUN_STOP );
    //if(key === "\\")            hardware_keys.push( KEY_ESC  );

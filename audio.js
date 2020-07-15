@@ -1,15 +1,9 @@
-// FORMULA: one buffer arrives every t cpu cycles
-// T = (3686400 / 2) / (48000 / BUFFER_SIZE)
-// in msec: t = BUFFER_SIZE / 48000 = 85.3
 
-
-// ********************************* AY-3-8910 AUDIO BUFFER ******************************************
-
-const AUDIO_BUFSIZE = 4096;  // must match psg.c
+const AUDIO_BUFSIZE = 1024;  // must match .c
 
 let audio_buffers_queue = [];
 
-function ay38910_audio_buf_ready(ptr, size) {
+function audio_buf_ready(ptr, size) {
    if(!audio_playing) return;
 
    let start = ptr / wasm_instance.HEAPF32.BYTES_PER_ELEMENT;
@@ -21,7 +15,7 @@ function ay38910_audio_buf_ready(ptr, size) {
 // ********************************* AUDIO BUFFER TO BROWSER AUDIO ************************************
 
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-const bufferSize = 4096;
+const bufferSize = AUDIO_BUFSIZE;
 const sampleRate = audioContext.sampleRate;
 var speakerSound = audioContext.createScriptProcessor(bufferSize, 1, 1);
 

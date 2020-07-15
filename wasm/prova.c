@@ -27,7 +27,7 @@ vic20_t sys;
 unsigned char pixel_buffer[PIXBUFSIZE];
 
 void audio_cb(const float* samples, int num_samples, void* user_data) {
-   // TODO
+   byte unused = (byte) EM_ASM_INT({ audio_buf_ready($0, $1); }, samples, num_samples );
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -45,7 +45,7 @@ void sys_init() {
 
    // audio
    desc.audio_cb = audio_cb;                         /* called when audio_num_samples are ready */
-   desc.audio_num_samples = VIC20_MAX_AUDIO_SAMPLES; /* default is VIC20_AUDIO_NUM_SAMPLES */
+   desc.audio_num_samples = 1024;                    /* default is VIC20_AUDIO_NUM_SAMPLES */
    desc.audio_sample_rate = 48000;                   /* playback sample rate in Hz, default is 44100 */
    desc.audio_volume = 1.0;                          /* audio volume of the VIC chip (0.0 .. 1.0), default is 1.0 */
 

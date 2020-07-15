@@ -121,7 +121,8 @@ typedef struct {
 
     /* audio output config (if you don't want audio, set audio_cb to zero) */
     vic20_audio_callback_t audio_cb;  /* called when audio_num_samples are ready */
-    int audio_num_samples;          /* default is VIC20_AUDIO_NUM_SAMPLES */
+    float *audio_buffer;            /* buffer containing audio samples */
+    int audio_num_samples;          /* size of the audio buffer */
     int audio_sample_rate;          /* playback sample rate in Hz, default is 44100 */
     float audio_volume;             /* audio volume of the VIC chip (0.0 .. 1.0), default is 1.0 */
 
@@ -161,7 +162,7 @@ typedef struct {
     vic20_audio_callback_t audio_cb;
     int num_samples;
     int sample_pos;
-    float sample_buffer[VIC20_MAX_AUDIO_SAMPLES];
+    float* sample_buffer;
 
     uint8_t color_ram[0x0400];      /* special color RAM */
     uint8_t ram0[0x0400];           /* 1 KB zero page, stack, system work area */
@@ -269,8 +270,8 @@ void vic20_init(vic20_t* sys, const vic20_desc_t* desc) {
     memcpy(sys->rom_kernal, desc->rom_kernal, sizeof(sys->rom_kernal));
     sys->user_data = desc->user_data;
     sys->audio_cb = desc->audio_cb;
-    sys->num_samples = _VIC20_DEFAULT(desc->audio_num_samples, VIC20_DEFAULT_AUDIO_SAMPLES);
-    CHIPS_ASSERT(sys->num_samples <= VIC20_MAX_AUDIO_SAMPLES);
+    sys->sample_buffer = desc->audio_buffer;
+    sys->num_samples = desc->audio_num_samples;
 
     /* datasette: motor off, no buttons pressed */
     sys->cas_port = VIC20_CASPORT_MOTOR|VIC20_CASPORT_SENSE;
@@ -630,14 +631,17 @@ static void _vic20_init_key_map(vic20_t* sys) {
     kbd_register_key(&sys->kbd, 0x09, 2, 7, 0);    /* cursor right */
     kbd_register_key(&sys->kbd, 0x0A, 3, 7, 0);    /* cursor down */
     kbd_register_key(&sys->kbd, 0x0B, 3, 7, 1);    /* cursor up */
-    kbd_register_key(&sys->kbd, 0x01, 0, 7, 0);    /* delete */
+    kbd_register_key(&sys->kbd, 0x07, 0, 7, 1);    /* inst */
+    kbd_register_key(&sys->kbd, 0x01, 0, 7, 0);    /* del */
     kbd_register_key(&sys->kbd, 0x0D, 1, 7, 0);    /* return */
     kbd_register_key(&sys->kbd, 0x03, 3, 0, 0);    /* stop */
 
     kbd_register_key(&sys->kbd, 0x04, 1, 0, 0);    /* left arrow */
     kbd_register_key(&sys->kbd, 0x05, 7, 6, 0);    /* home */
     kbd_register_key(&sys->kbd, 0x06, 7, 6, 1);    /* clr */
-    kbd_register_key(&sys->kbd, 0x07, 0, 7, 1);    /* inst */
+
+    kbd_register_key(&sys->kbd, 0x0E, 2, 0, 0);    /* ctrl */
+    kbd_register_key(&sys->kbd, 0x0F, 5, 0, 0);    /* C= key */
 
     kbd_register_key(&sys->kbd, 0xF1, 4, 7, 0);
     kbd_register_key(&sys->kbd, 0xF2, 4, 7, 1);

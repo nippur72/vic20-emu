@@ -22,9 +22,11 @@ typedef uint16_t word;
 vic20_desc_t desc;
 vic20_t sys;
 
-// 568x312x4
 #define PIXBUFSIZE (708864)
 unsigned char pixel_buffer[PIXBUFSIZE];
+
+#define AUDIOBUFSIZE (4096)
+float audio_buffer[AUDIOBUFSIZE];
 
 void audio_cb(const float* samples, int num_samples, void* user_data) {
    byte unused = (byte) EM_ASM_INT({ audio_buf_ready($0, $1); }, samples, num_samples );
@@ -45,7 +47,8 @@ void sys_init() {
 
    // audio
    desc.audio_cb = audio_cb;                         /* called when audio_num_samples are ready */
-   desc.audio_num_samples = 1024;                    /* default is VIC20_AUDIO_NUM_SAMPLES */
+   desc.audio_buffer = audio_buffer;
+   desc.audio_num_samples = AUDIOBUFSIZE;
    desc.audio_sample_rate = 48000;                   /* playback sample rate in Hz, default is 44100 */
    desc.audio_volume = 1.0;                          /* audio volume of the VIC chip (0.0 .. 1.0), default is 1.0 */
 

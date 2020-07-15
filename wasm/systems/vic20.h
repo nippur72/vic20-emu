@@ -666,7 +666,7 @@ bool vic20_quickload(vic20_t* sys, const uint8_t* ptr, int num_bytes) {
         mem_wr(&sys->mem_cpu, addr++, *ptr++);
     }
 
-    // updated the BASIC pointers
+    // update the BASIC pointers
 	mem_wr(&sys->mem_cpu, 0x2d, (end_addr>>0) & 0xFF);
 	mem_wr(&sys->mem_cpu, 0x2e, (end_addr>>8) & 0xFF);
 	mem_wr(&sys->mem_cpu, 0x2f, (end_addr>>0) & 0xFF);

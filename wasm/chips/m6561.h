@@ -185,24 +185,27 @@ typedef struct {
 
 /* sound generator state */
 typedef struct {
-    uint16_t count;     /* count down with clock frequency */
-    uint16_t period;    /* counter reload value */
-    uint8_t sreg;       /* shift register */
+    uint16_t count;     /* count up with channel frequency */
+    uint16_t freq;      /* counter reload value */
+    uint8_t sreg;       /* 8 bit shift register */
     uint8_t enabled;    /* 1 if enabled */
+    float output;       /* output of the generator */
 } m6561_voice_t;
 
 typedef struct {
-    uint16_t count;
-    uint16_t period;
-    uint8_t sreg;      /* 8 blit shift register */
+    uint16_t count;    /* count up with channel frequency */
+    uint16_t freq;     /* counter reload value */
+    uint8_t sreg;      /* 8 bit shift register */
     uint16_t LFSR;     /* 16 bit LFSR */
-    uint8_t LFSR0;     /* bit LFSR(0) at previous step, for edge detection */
-    uint8_t enabled;
+    uint8_t LFSR0_old; /* bit LFSR(0) at previous step, for edge detection */
+    uint8_t enabled;   /* 1 if enabled */
+    float output;      /* output of the generator */ 
 } m6561_noise_t;
 
 typedef struct {
     m6561_voice_t voice[3];
     m6561_noise_t noise;
+    uint8_t divider_counter;
     uint8_t volume;
     int sample_period;
     int sample_counter;
@@ -344,9 +347,10 @@ static void _m6561_reset_audio(m6561_t* vic) {
     }
     memset(&vic->sound.noise, 0, sizeof(m6561_noise_t));
     vic->sound.volume = 0;
+    vic->sound.divider_counter = 0;
     vic->sound.noise.sreg = 0;
     vic->sound.noise.LFSR = 0;
-    vic->sound.noise.LFSR0 = 0;
+    vic->sound.noise.LFSR0_old = 0;    
 }
 
 void m6561_reset(m6561_t* vic) {
@@ -390,14 +394,10 @@ static void _m6561_regs_dirty(m6561_t* vic) {
     vic->mem.g_addr_base = ((vic->regs[5] & 0xF)<<10);  // A13..A10
     vic->mem.c_addr_base = (((vic->regs[5]>>4)&0xF)<<10) | // A13..A10
                            (((vic->regs[2]>>7)&1)<<9);    // A9
-    vic->sound.voice[0].enabled = 0 != (vic->regs[10] & 0x80);
-    vic->sound.voice[0].period = 16 * (0x80 - (vic->regs[10] & 0x7F));
-    vic->sound.voice[1].enabled = 0 != (vic->regs[11] & 0x80);
-    vic->sound.voice[1].period = 8 * (0x80 - (vic->regs[11] & 0x7F));
-    vic->sound.voice[2].enabled = 0 != (vic->regs[12] & 0x80);
-    vic->sound.voice[2].period = 4 * (0x80 - (vic->regs[12] & 0x7F));
-    vic->sound.noise.enabled = 0 != (vic->regs[13] & 0x80);
-    vic->sound.noise.period = 8 * (0x80 - (vic->regs[13] & 0x7F));
+    vic->sound.voice[0].enabled = 0 != (vic->regs[10] & 0x80);   vic->sound.voice[0].freq = vic->regs[10] & 0x7F;
+    vic->sound.voice[1].enabled = 0 != (vic->regs[11] & 0x80);   vic->sound.voice[1].freq = vic->regs[11] & 0x7F;
+    vic->sound.voice[2].enabled = 0 != (vic->regs[12] & 0x80);   vic->sound.voice[2].freq = vic->regs[12] & 0x7F;
+    vic->sound.noise.enabled    = 0 != (vic->regs[13] & 0x80);   vic->sound.noise.freq    = vic->regs[13] & 0x7F;
     vic->sound.volume = vic->regs[14] & 0xF;
 }
 
@@ -552,60 +552,69 @@ static inline float _m6561_dcadjust(m6561_sound_t* snd, float s) {
     return s - (snd->dcadj_sum / M6561_DCADJ_BUFLEN);
 }
 
-/* tick the audio engine, return true if a new sample if ready */
+static void _m6561_tick_voice(m6561_voice_t* voice) {
+    voice->count = (voice->count + 1) & 0x7f;
+    
+    if (voice->count == 127) {
+        voice->count = voice->freq;
+        voice->sreg = (voice->sreg << 1) | (~((voice->sreg & 128) >> 7) & voice->enabled);
+    }
+
+    if (voice->enabled) {
+        if(voice->sreg & 1) voice->output = 1.0f;
+        else                voice->output = 0.0f;
+    }
+    else {
+        voice->output = 0.5f;
+    }
+}
+
+static void _m6561_tick_noise(m6561_noise_t* noise) {
+    noise->count = (noise->count + 1) & 0x7f;
+
+    if (noise->count == 127) {
+        noise->count = noise->freq;
+
+        uint8_t LFSR0 = noise->LFSR & 1;
+
+        // shifts the 8 bit SR at edge detection of LFSR[0]            
+        if (noise->LFSR0_old == 0 && LFSR0 == 1) {
+            noise->sreg = (noise->sreg << 1) | (~((noise->sreg & 128) >> 7) & noise->enabled);
+        }                        
+
+        // shifts the 16 bit LFSR
+        noise->LFSR0_old = LFSR0;  // save bit for edge detection
+        uint8_t gate1 = ((noise->LFSR >>  3) ^ (noise->LFSR >> 12)) & 1;
+        uint8_t gate2 = ((noise->LFSR >> 14) ^ (noise->LFSR >> 15)) & 1;
+        uint8_t gate3 = ~(gate1 ^ gate2);
+        LFSR0 = (gate3 & noise->enabled);
+        noise->LFSR = (noise->LFSR << 1) | LFSR0;
+    }
+
+    if (noise->enabled) {
+        if (noise->sreg & 1) noise->output = 1.0f;
+        else                 noise->output = 0.0f;
+    }
+    else {
+        noise->output = 0.5f;
+    }
+}
+
+/* tick the audio engine, return true if a new sample is ready */
 static uint64_t _m6561_tick_audio(m6561_t* vic, uint64_t pins) {
     m6561_sound_t* snd = &vic->sound;
-    /* tick tone voices */
-    for (int i = 0; i < 3; i++) {
-        m6561_voice_t* voice = &snd->voice[i];
 
-        if (voice->count == 0) {
-            voice->count = voice->period;
-            voice->sreg = ((voice->sreg & 0b01111111) << 1) | (~((voice->sreg & 128) >> 7) & voice->enabled);
-        }
-        else {
-            voice->count--;
-        }
+    snd->divider_counter++;
+    if ((snd->divider_counter & 15) == 0) _m6561_tick_voice(&snd->voice[0]);
+    if ((snd->divider_counter &  7) == 0) _m6561_tick_voice(&snd->voice[1]);
+    if ((snd->divider_counter &  3) == 0) _m6561_tick_voice(&snd->voice[2]);
+    if ((snd->divider_counter &  1) == 0) _m6561_tick_noise(&snd->noise);
 
-        if (voice->enabled) {
-            if(voice->sreg & 1) snd->sample_accum += 1.0f;
-        }
-        else {
-            snd->sample_accum += 0.5f;
-        }
-    }
-    /* tick noise channel */
-    {
-        m6561_noise_t* noise = &snd->noise;
-        if (noise->count == 0) {
-            noise->count = noise->period;
+    snd->sample_accum += snd->voice[0].output + 
+                         snd->voice[1].output + 
+                         snd->voice[2].output + 
+                         snd->noise.output;
 
-            uint8_t bit0 = noise->LFSR & 1;
-
-            // shifts the 8 bit SR at edge detection of LFSR[0]
-            if (noise->LFSR0 == 0 && bit0 == 1) {
-                noise->sreg = (noise->sreg << 1) | (~((noise->sreg & 128) >> 7) & noise->enabled);
-            }
-
-            // shifts the 16 bit LFSR
-            noise->LFSR0 = bit0;  // save bit for edge detection
-            uint8_t gate1 = ((noise->LFSR >> 3) ^ (noise->LFSR >> 12)) & 1;
-            uint8_t gate2 = ((noise->LFSR >> 14) ^ (noise->LFSR >> 15)) & 1;
-            uint8_t gate3 = ~(gate1 ^ gate2);
-            bit0 = ~(gate3 & noise->enabled);
-            noise->LFSR = (noise->LFSR << 1) | bit0;
-        }
-        else {
-            noise->count--;
-        }
-
-        if (noise->enabled) {
-            if (noise->sreg & 1) snd->sample_accum += 1.0f;
-        }
-        else {
-            snd->sample_accum += 0.5f;
-        }
-    }
     snd->sample_accum_count += 1.0f;
 
     /* output a new sample */

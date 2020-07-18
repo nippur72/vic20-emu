@@ -64,10 +64,16 @@ void sys_init() {
 
    vic20_reset(&sys);
 
+   /*
    int w = vic20_std_display_width();
    int h = vic20_std_display_height();
-
    byte unused = (byte) EM_ASM_INT({ console.log($0, $1); }, w, h );
+   */
+}
+
+EMSCRIPTEN_KEEPALIVE
+void sys_reset() {
+   vic20_reset(&sys);
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -91,27 +97,15 @@ void sys_quick_load(uint8_t *bytes, int num_bytes) {
    vic20_quickload(&sys, bytes, num_bytes);
 }
 
-///*
-///* initialize a new VIC-20 instance */
-//void vic20_init(vic20_t* sys, const vic20_desc_t* desc);
-///* discard VIC-20 instance */
-//void vic20_discard(vic20_t* sys);
-///* get the standard framebuffer width and height in pixels */
-//int vic20_std_display_width(void);
-//int vic20_std_display_height(void);
-///* get the maximum framebuffer size in number of bytes */
-//int vic20_max_display_size(void);
-///* get the current framebuffer width and height in pixels */
-//int vic20_display_width(vic20_t* sys);
-//int vic20_display_height(vic20_t* sys);
-///* reset a VIC-20 instance */
-//void vic20_reset(vic20_t* sys);
-///* tick VIC-20 instance for a given number of microseconds, also updates keyboard state */
-//void vic20_exec(vic20_t* sys, uint32_t micro_seconds);
-///* ...or optionally: tick the VIC-20 instance once, does not update keyboard state! */
-//void vic20_tick(vic20_t* sys);
+EMSCRIPTEN_KEEPALIVE
+uint8_t sys_mem_cpu_rd(uint16_t address) {
+   return mem_rd(&sys.mem_cpu, address);
+}
 
-
+EMSCRIPTEN_KEEPALIVE
+void sys_mem_cpu_wr(uint16_t address, uint8_t data) {
+   mem_wr(&sys.mem_cpu, address, data);
+}
 
 ///* enable/disable joystick emulation */
 //void vic20_set_joystick_type(vic20_t* sys, vic20_joystick_type_t type);

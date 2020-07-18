@@ -13,7 +13,7 @@ function keyDown(e) {
 
    // RESET key is CTRL+ALT+BREAK
    if(e.code === "Pause" && e.altKey && e.ctrlKey) {
-      cpu.reset();      
+      vic20.reset();
       e.preventDefault(); 
       return;
    }

@@ -21,7 +21,7 @@
    */
 
 function pckey_to_hardware_keys_ITA(code, key, e) {
-   console.log(code, key, e);
+   //console.log(code, key, e);
 
    let hardware_keys = [];
 

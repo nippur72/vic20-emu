@@ -1,7 +1,15 @@
+
+let emulate_joystick = false;
+
 function keyDown(e) {
 
    // from Chrome 71 audio is suspended by default and must resume within an user-generated event
-   audioContextResume();   
+   audioContextResume();
+
+   if(e.getModifierState("ScrollLock")!=emulate_joystick) {
+      emulate_joystick = e.getModifierState("ScrollLock");
+      vic20.emu_joy(emulate_joystick);
+   }
 
    // disable auto repeat, as it is handled on the firmware
    if(e.repeat) {

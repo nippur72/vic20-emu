@@ -39,6 +39,9 @@ function load_wasm(ready_cb) {
 
       vic20.key_down = instance.cwrap("sys_key_down" , null, ['number'] );
       vic20.key_up   = instance.cwrap("sys_key_up"   , null, ['number'] );
+      vic20.joystick = instance.cwrap("sys_joystick" , null, ['number'] );
+
+      vic20.emu_joy  = instance.cwrap("sys_set_joystick_type" , null, ['number'] );
 
       vic20.load_prg = instance.cwrap("sys_quick_load"   , null, ['array', 'number'] );
       vic20.peek     = instance.cwrap("sys_mem_cpu_rd"   , 'number', ['number'] );

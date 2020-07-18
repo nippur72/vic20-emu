@@ -111,6 +111,16 @@ void sys_config(vic20_memory_config_t config) {
    sys_reset();
 }
 
+EMSCRIPTEN_KEEPALIVE
+void sys_joystick(uint8_t joy_mask) {
+   vic20_joystick(&sys, joy_mask);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void sys_set_joystick_type(vic20_joystick_type_t type) {
+   vic20_set_joystick_type(&sys, type);
+}
+
 ///* enable/disable joystick emulation */
 //void vic20_set_joystick_type(vic20_t* sys, vic20_joystick_type_t type);
 ///* get current joystick emulation type */

@@ -1,13 +1,9 @@
 "use strict";
 
 // TODO uppercase/lowercase (shift lock)
-// TODO fix audio engine
-// TODO submit keyboard changes
 // TODO modify 6561 to trigger a callback at the end of the video
-// TODO filesystem load, save, download, dir
-// TODO joystick interface
 // TODO fix for alt/cbm/shift what keyboard?
-// TODO shift problem
+// TODO shift problem  SHIFT + 9
 
 /******************/
 

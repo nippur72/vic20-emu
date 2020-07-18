@@ -33,13 +33,13 @@ void audio_cb(const float* samples, int num_samples, void* user_data) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-void sys_init() {
+void sys_init(vic20_memory_config_t config) {
 
    desc.user_data = NULL;                            /* optional user-data for callback functions */
 
    desc.c1530_enabled = false;                       /* set to true to enable C1530 datassette emulation */
    desc.joystick_type = VIC20_JOYSTICKTYPE_NONE;     /* default is VIC20_JOYSTICK_NONE */
-   desc.mem_config    = VIC20_MEMCONFIG_STANDARD;    /* default is VIC20_MEMCONFIG_STANDARD */
+   desc.mem_config    = config;                      /* default is VIC20_MEMCONFIG_STANDARD */
 
    // video
    desc.pixel_buffer = pixel_buffer;                 /* pointer to a linear RGBA8 pixel buffer, query required size via vic20_max_display_size() */
@@ -61,8 +61,6 @@ void sys_init() {
    desc.rom_kernal_size = 8192;
 
    vic20_init(&sys, &desc);
-
-   vic20_reset(&sys);
 
    /*
    int w = vic20_std_display_width();
@@ -105,6 +103,12 @@ uint8_t sys_mem_cpu_rd(uint16_t address) {
 EMSCRIPTEN_KEEPALIVE
 void sys_mem_cpu_wr(uint16_t address, uint8_t data) {
    mem_wr(&sys.mem_cpu, address, data);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void sys_config(vic20_memory_config_t config) {
+   sys_init(config);
+   sys_reset();
 }
 
 ///* enable/disable joystick emulation */

@@ -101,11 +101,14 @@ async function load_file(fileName, address) {
    //cpu.reset();   
 }
 
+const BASTXT = 0x002b;
+const PROGND = 0x002d;
+
 async function save_file(filename, start, end) {
    if(start === undefined) start = mem_read_word(BASTXT);
    if(end === undefined) end = mem_read_word(PROGND)-1;
 
-   const prg = [];
+   const prg = [ start & 0xFF, start >> 8 ];
    for(let i=0,t=start; t<=end; i++,t++) {
       prg.push(mem_read(t));
    }

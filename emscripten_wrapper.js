@@ -1,9 +1,10 @@
 
 let wasm_instance;
 
-/*
 let mem_read;
 let mem_write;
+
+/*
 let rom_load;
 
 let io_read;
@@ -31,9 +32,10 @@ function load_wasm(ready_cb) {
    let instance = emscripten_module({ wasmBinary: emscripten_wasm_binary, onRuntimeInitialized: ()=>{
       // makes C exported functions available globally
 
-      vic20.init  = instance.cwrap("sys_init", null);
-      vic20.exec  = instance.cwrap("sys_exec", null);
-      vic20.reset = instance.cwrap("sys_reset", null);
+      vic20.init     = instance.cwrap("sys_init", null);
+      vic20.config   = instance.cwrap("sys_config", null, ['number']);
+      vic20.exec     = instance.cwrap("sys_exec", null);
+      vic20.reset    = instance.cwrap("sys_reset", null);
 
       vic20.key_down = instance.cwrap("sys_key_down" , null, ['number'] );
       vic20.key_up   = instance.cwrap("sys_key_up"   , null, ['number'] );
@@ -41,6 +43,9 @@ function load_wasm(ready_cb) {
       vic20.load_prg = instance.cwrap("sys_quick_load"   , null, ['array', 'number'] );
       vic20.peek     = instance.cwrap("sys_mem_cpu_rd"   , 'number', ['number'] );
       vic20.poke     = instance.cwrap("sys_mem_cpu_wr"   , null, ['number', 'number'] );
+
+      mem_read = vic20.peek;
+      mem_write = vic20.poke;
 
       /*
       cpu_init            = instance.cwrap("cpu_init", null);

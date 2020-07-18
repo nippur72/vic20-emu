@@ -95,7 +95,7 @@ function main() {
 
    parseQueryStringCommands();
 
-   vic20.init();
+   vic20.config(0);
 
    goAudio();
 

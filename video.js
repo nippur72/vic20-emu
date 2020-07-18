@@ -1,27 +1,12 @@
 
 let aspect = 1.2;
 
-const TEXT_W = 232;
-const TEXT_H = 272;
-
-let BORDER_V_TOP;
-let BORDER_V_BOTTOM;
-let BORDER_H_LEFT;
-let BORDER_H_RIGHT;
-
-let SCREEN_W;
-let SCREEN_H;
+let SCREEN_W = 205;  // 232
+let SCREEN_H = 262;  // 272
 
 let saturation = 1.0;
 
 function calculateGeometry() {
-   BORDER_V_TOP    = 0;
-   BORDER_V_BOTTOM = 0;
-   BORDER_H_LEFT   = 0;
-   BORDER_H_RIGHT  = 0;
-   SCREEN_W = BORDER_H_LEFT + TEXT_W + BORDER_H_RIGHT;
-   SCREEN_H = BORDER_V_TOP  + TEXT_H + BORDER_V_BOTTOM;
-
    // canvas is the outer canvas where the aspect ratio is corrected
    let canvas = document.getElementById("canvas");
    canvas.width  = SCREEN_W * 2;
@@ -51,7 +36,6 @@ let imagedata_data = new Uint32Array(imagedata_buffer);
 
 
 function vdp_screen_update(ptr) {
-   //console.log(ptr);
    let start = ptr / wasm_instance.HEAPU32.BYTES_PER_ELEMENT;
    let size = WW*HH;
    let buffer = wasm_instance.HEAPU32.subarray(start,start+size);
@@ -74,7 +58,7 @@ function vdp_screen_update(ptr) {
    }
 
    tms9928a_imagedata.data.set(imagedata_buf8);
-   tms9928a_context.putImageData(tms9928a_imagedata, 0, 0);
+   tms9928a_context.putImageData(tms9928a_imagedata, -20, -8);
 
    // update LED
    document.getElementById("LED").style.visibility = LED>0 ? "visible" : "hidden";

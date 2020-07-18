@@ -32,6 +32,10 @@ void audio_cb(const float* samples, int num_samples, void* user_data) {
    byte unused = (byte) EM_ASM_INT({ audio_buf_ready($0, $1); }, samples, num_samples );
 }
 
+void end_frame_cb(void* user_data) {
+   byte unused = (byte) EM_ASM_INT({ vdp_screen_update($0); }, pixel_buffer );
+}
+
 EMSCRIPTEN_KEEPALIVE
 void sys_init(vic20_memory_config_t config) {
 
@@ -43,7 +47,8 @@ void sys_init(vic20_memory_config_t config) {
 
    // video
    desc.pixel_buffer = pixel_buffer;                 /* pointer to a linear RGBA8 pixel buffer, query required size via vic20_max_display_size() */
-   desc.pixel_buffer_size = PIXBUFSIZE;                  /* size of the pixel buffer in bytes */
+   desc.pixel_buffer_size = PIXBUFSIZE;              /* size of the pixel buffer in bytes */
+   desc.end_frame_cb = end_frame_cb;
 
    // audio
    desc.audio_cb = audio_cb;                         /* called when audio_num_samples are ready */
@@ -77,7 +82,7 @@ void sys_reset() {
 EMSCRIPTEN_KEEPALIVE
 void sys_exec() {
    vic20_exec(&sys, 16666);
-   byte unused = (byte) EM_ASM_INT({ vdp_screen_update($0); }, pixel_buffer );
+   //byte unused = (byte) EM_ASM_INT({ vdp_screen_update($0); }, pixel_buffer );
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -1,9 +1,9 @@
 "use strict";
 
 // TODO uppercase/lowercase (shift lock)
-// TODO modify 6561 to trigger a callback at the end of the video
 // TODO fix for alt/cbm/shift what keyboard?
 // TODO shift problem  SHIFT + 9
+// TODO 1541 emulation
 
 /******************/
 

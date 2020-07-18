@@ -119,6 +119,9 @@ extern "C" {
 /* memory fetch callback, used to feed pixel- and color-data into the m6561 */
 typedef uint16_t (*m6561_fetch_t)(uint16_t addr, void* user_data);
 
+/* end of video frame callback */
+typedef void (*m6561_end_frame_t)(void* user_data);
+
 /* setup parameters for m6561_init() function */
 typedef struct {
     /* pointer to RGBA8 framebuffer for generated image (optional) */
@@ -129,6 +132,8 @@ typedef struct {
     uint16_t vis_x, vis_y, vis_w, vis_h;
     /* the memory-fetch callback */
     m6561_fetch_t fetch_cb;
+    /* end of video frame callback */
+    m6561_end_frame_t end_frame_cb;
     /* optional user-data for fetch callback */
     void* user_data;
     /* frequency at which the tick function is called (for audio generation) */
@@ -221,8 +226,9 @@ typedef struct {
 /* the m6561_t state struct */
 typedef struct {
     uint64_t pins;
-    m6561_fetch_t fetch_cb; /* memory fetch callback */
-    void* user_data;        /* memory fetch callback user data */
+    m6561_fetch_t fetch_cb;          /* memory fetch callback */
+    m6561_end_frame_t end_frame_cb;  /* end of frame callback */
+    void* user_data;                 /* memory fetch callback user data */
     bool debug_vis;
     uint8_t regs[M6561_NUM_REGS];
     m6561_raster_unit_t rs;
@@ -318,6 +324,7 @@ void m6561_init(m6561_t* vic, const m6561_desc_t* desc) {
     vic->sound.sample_period = (desc->tick_hz * _M6561_FIXEDPOINT_SCALE) / desc->sound_hz;
     vic->sound.sample_counter = vic->sound.sample_period;
     vic->sound.sample_mag = desc->sound_magnitude;
+    vic->end_frame_cb = desc->end_frame_cb;
 }
 
 static void _m6561_reset_crt(m6561_t* vic) {
@@ -537,6 +544,9 @@ static void _m6561_tick_video(m6561_t* vic) {
         if (vic->rs.v_count == _M6561_VTOTAL) {
             vic->rs.v_count = 0;
             vic->border.enabled |= _M6561_VBORDER;
+            if(vic->end_frame_cb != NULL) {
+                vic->end_frame_cb(vic->user_data);
+            }
         }
     }
 }

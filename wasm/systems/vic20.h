@@ -114,6 +114,8 @@ typedef struct {
                                    query required size via vic20_max_display_size() */
     int pixel_buffer_size;      /* size of the pixel buffer in bytes */
 
+    m6561_end_frame_t end_frame_cb;  /* end of frame callback */
+
     /* optional user-data for callback functions */
     void* user_data;
 
@@ -290,6 +292,7 @@ void vic20_init(vic20_t* sys, const vic20_desc_t* desc) {
     vic_desc.vis_y = _VIC20_DISPLAY_Y;
     vic_desc.vis_w = _VIC20_STD_DISPLAY_WIDTH;
     vic_desc.vis_h = _VIC20_STD_DISPLAY_HEIGHT;
+    vic_desc.end_frame_cb = desc->end_frame_cb;
     vic_desc.user_data = sys;
     vic_desc.tick_hz = VIC20_FREQUENCY;
     vic_desc.sound_hz = _VIC20_DEFAULT(desc->audio_sample_rate, 44100);

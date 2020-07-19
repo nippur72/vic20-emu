@@ -31,7 +31,7 @@ let options = {
 };
 
 // scanline version
-function renderLines(nlines) {
+function renderLines() {
    vic20.exec();
 }
 

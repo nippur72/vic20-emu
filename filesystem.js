@@ -59,10 +59,10 @@ async function load(filename, p) {
    }
    
    const ext = filename.substr(-4).toLowerCase();
-
+   console.log("ext");
         if(ext === ".prg") await load_file(filename, p);
-   else if(ext === ".emu") await load_state(filename);
-   else console.log("give filename .prg or .emu extension");
+   else if(ext === ".tap") await load_tap(filename);
+   else console.log("give filename .prg or .tap extension");
 }
 
 async function save(filename, p1, p2) {
@@ -99,6 +99,21 @@ async function load_file(fileName, address) {
    const bytes = await readFile(fileName);
    loadBytes(bytes, address, fileName);   
    //cpu.reset();   
+}
+
+async function load_tap(fileName) {
+   const bytes = await readFile(fileName);
+
+   let buffer = new Uint8Array(bytes.buffer);
+   let ok = vic20.tape.insert(buffer, bytes.length);
+
+   if(ok) {
+      console.log(`insert tape file "${fileName}" of ${bytes.length} bytes`);
+   }
+   else {
+      console.log(`*** failed to insert tape file "${fileName}" of ${bytes.length} bytes`);
+   }
+
 }
 
 const BASTXT = 0x002b;

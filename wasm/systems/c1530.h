@@ -99,9 +99,6 @@ extern "C" {
 #define C1530_CASPORT_WRITE   (1<<2)
 #define C1530_CASPORT_SENSE   (1<<3)
 
-/* max size of a cassette tape image */
-#define C1530_MAX_TAPE_SIZE (512*1024)
-
 /* config params for c1530_init() */
 typedef struct {
     /* pointer to a the C64's cassette port byte */
@@ -115,7 +112,7 @@ typedef struct {
     uint32_t size;      /* tape_size > 0: a tape is inserted */
     uint32_t pos;
     uint32_t pulse_count;
-    uint8_t buf[C1530_MAX_TAPE_SIZE];
+    uint8_t *buf;
 } c1530_t;
 
 /* initialize a c1530_t instance */
@@ -200,10 +197,7 @@ bool c1530_insert_tape(c1530_t* sys, const uint8_t* ptr, int num_bytes) {
     if (num_bytes < (int)(hdr->size + sizeof(_c1530_tap_header))) {
         return false;
     }
-    if (num_bytes > (int)sizeof(sys->buf)) {
-        return false;
-    }
-    memcpy(sys->buf, ptr, hdr->size);
+    sys->buf = (uint8_t *) ptr;
     sys->size = hdr->size;
     sys->pos = 0;
     sys->pulse_count = 0;

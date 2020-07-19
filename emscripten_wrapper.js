@@ -23,7 +23,7 @@ let keyboard_release;
 let keyboard_poll;
 */
 
-let vic20 = { };
+let vic20 = { tape: { } };
 
 function load_wasm(ready_cb) {
 
@@ -46,6 +46,13 @@ function load_wasm(ready_cb) {
       vic20.load_prg = instance.cwrap("sys_quick_load"   , null, ['array', 'number'] );
       vic20.peek     = instance.cwrap("sys_mem_cpu_rd"   , 'number', ['number'] );
       vic20.poke     = instance.cwrap("sys_mem_cpu_wr"   , null, ['number', 'number'] );
+
+      vic20.cas_port = instance.cwrap("sys_cas_port"   , 'number');
+
+      vic20.tape.insert = instance.cwrap("sys_insert_tape"  , 'bool', ['array', 'number'] );
+      vic20.tape.remove = instance.cwrap("sys_remove_tape"  , null );
+      vic20.tape.play   = instance.cwrap("sys_tape_play"    , null );
+      vic20.tape.stop   = instance.cwrap("sys_tape_stop"    , null );
 
       mem_read = vic20.peek;
       mem_write = vic20.poke;

@@ -41,7 +41,7 @@ void sys_init(vic20_memory_config_t config) {
 
    desc.user_data = NULL;                            /* optional user-data for callback functions */
 
-   desc.c1530_enabled = false;                       /* set to true to enable C1530 datassette emulation */
+   desc.c1530_enabled = false;                        /* enable the C1530 datassette emulation */
    desc.joystick_type = VIC20_JOYSTICKTYPE_NONE;     /* default is VIC20_JOYSTICK_NONE */
    desc.mem_config    = config;                      /* default is VIC20_MEMCONFIG_STANDARD */
 
@@ -125,6 +125,32 @@ EMSCRIPTEN_KEEPALIVE
 void sys_set_joystick_type(vic20_joystick_type_t type) {
    vic20_set_joystick_type(&sys, type);
 }
+
+EMSCRIPTEN_KEEPALIVE
+bool sys_insert_tape(const uint8_t* ptr, int num_bytes) {
+   return vic20_insert_tape(&sys, ptr, num_bytes);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void sys_remove_tape() {
+   vic20_remove_tape(&sys);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void sys_tape_play() {
+   vic20_tape_play(&sys);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void sys_tape_stop() {
+   vic20_tape_stop(&sys);
+}
+
+EMSCRIPTEN_KEEPALIVE
+uint8_t sys_cas_port() {
+   return sys.cas_port;
+}
+
 
 ///* enable/disable joystick emulation */
 //void vic20_set_joystick_type(vic20_t* sys, vic20_joystick_type_t type);

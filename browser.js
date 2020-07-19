@@ -88,6 +88,12 @@ function droppedFile(outName, bytes) {
       writeFile(outName, bytes);
       crun(outName);         
    }
+
+   const tap = /\.tap$/i;
+   if(tap.test(outName)) {
+      writeFile(outName, bytes);
+      crun(outName);
+   }
 }
 
 function getQueryStringObject(options) {

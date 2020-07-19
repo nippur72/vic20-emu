@@ -71,40 +71,30 @@ function crun(filename) {
 }
 
 function paste(text) {
-   return;
-
    const lines = text.split("\n");
    for(let t=0; t<lines.length; t++) {
       const linea = lines[t];
       console.log(linea);
-      pasteLine(linea);
-      pasteChar(13);   // CR
+      pasteText(linea);
       pasteChar(13);   // CR
    }
    console.log("pasted!");
 }
 
-function pasteLine(line) {
-   return;
-   lm80c_ctc_enable(false);
-   renderLines(262);
+function pasteText(line) {
 
    for(let t=0;t<line.length;t++) {
       let c = line.charCodeAt(t);
       pasteChar(c);
    }
-
-   renderLines(262);
-   lm80c_ctc_enable(true);
-   renderLines(262);
 }
 
 function pasteChar(c) {
-   SIO_receiveChar(c);
-   while(sio_is_busy()) renderLines(262);
-   while(mem_read(CRSR_STATE)==0) renderLines(262);
-   while(mem_read(CRSR_STATE)==0) renderLines(262);
-   renderLines(262);
+   while(vic20.peek(198) !== 0) {
+      renderLines();
+   }
+   vic20.poke(631,c);
+   vic20.poke(198,1);
 }
 
 function wait(time) {

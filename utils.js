@@ -67,21 +67,21 @@ function mem_read_word(address) {
 function crun(filename) {
    load(filename);
    //await print_string("\nrun:\n");
-   pasteLine("RUN\r\n");
+   paste("RUN\n");
 }
 
-function paste(text) {
+function pasteLine(text) {
    const lines = text.split("\n");
    for(let t=0; t<lines.length; t++) {
       const linea = lines[t];
       console.log(linea);
-      pasteText(linea);
+      paste(linea);
       pasteChar(13);   // CR
    }
    console.log("pasted!");
 }
 
-function pasteText(line) {
+function paste(line) {
 
    for(let t=0;t<line.length;t++) {
       let c = line.charCodeAt(t);

@@ -1,8 +1,27 @@
 
 let aspect = 1.2;
 
+/*
 let SCREEN_W = 205;  // 232
 let SCREEN_H = 262;  // 272
+
+let POS_X = -20;
+let POS_Y = -8;
+*/
+
+/*
+let SCREEN_W = 232-24;
+let SCREEN_H = 272;
+
+let POS_X = -12;
+let POS_Y = 0;
+*/
+
+let SCREEN_W = 208;
+let SCREEN_H = 264;
+
+let POS_X = 0;
+let POS_Y = 0;
 
 let saturation = 1.0;
 
@@ -24,8 +43,13 @@ calculateGeometry();
 
 /**************************************************/
 
+/*
 let WW = 232;
 let HH = 272;
+*/
+
+let WW = 208;
+let HH = 264;
 
 let tms9928a_canvas = document.getElementById("canvas");
 let tms9928a_context = tms9928a_canvas.getContext('2d');
@@ -58,7 +82,7 @@ function vdp_screen_update(ptr) {
    }
 
    tms9928a_imagedata.data.set(imagedata_buf8);
-   tms9928a_context.putImageData(tms9928a_imagedata, -20, -8);
+   tms9928a_context.putImageData(tms9928a_imagedata, POS_X, POS_Y);
 
    // update LED
    document.getElementById("LED").style.visibility = LED>0 ? "visible" : "hidden";

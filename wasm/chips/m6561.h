@@ -318,6 +318,7 @@ void m6561_init(m6561_t* vic, const m6561_desc_t* desc) {
     CHIPS_ASSERT((0 == desc->rgba8_buffer) || (desc->rgba8_buffer_size >= (_M6561_HTOTAL*8*_M6561_VTOTAL*sizeof(uint32_t))));
     memset(vic, 0, sizeof(*vic));
     _m6561_init_crt(&vic->crt, desc);
+    //vic->debug_vis = true;
     vic->border.enabled = _M6561_HBORDER|_M6561_VBORDER;
     vic->fetch_cb = desc->fetch_cb;
     vic->user_data = desc->user_data;
@@ -448,7 +449,6 @@ static inline void _m6561_decode_pixels(m6561_t* vic, uint32_t* dst) {
             dst[2] = (p & (1<<5)) ? fg : bg;
             dst[3] = (p & (1<<4)) ? fg : bg;
         }
-        vic->gunit.shift = p<<4;
     }
 }
 
@@ -474,6 +474,7 @@ static void _m6561_tick_video(m6561_t* vic) {
             uint32_t* dst = vic->crt.rgba8_buffer + (y * w + x) * _M6561_PIXELS_PER_TICK;
             _m6561_decode_pixels(vic, dst);
         }
+        vic->gunit.shift = vic->gunit.shift<<4;
     }
 
     /* display-enabled area? */

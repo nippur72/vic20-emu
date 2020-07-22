@@ -52,14 +52,14 @@ function setStore(store) {
 }
 */
 
-async function load(filename, p) {   
+async function load(filename, p) {
    if(!await fileExists(filename)) {
       console.log(`file "${filename}" not found`);
       return;
    }
    
    const ext = filename.substr(-4).toLowerCase();
-   console.log("ext");
+
         if(ext === ".prg") await load_file(filename, p);
    else if(ext === ".tap") await load_tap(filename);
    else console.log("give filename .prg or .tap extension");
@@ -98,7 +98,7 @@ function loadBytes(bytes, address, fileName) {
 async function load_file(fileName, address) {   
    const bytes = await readFile(fileName);
    loadBytes(bytes, address, fileName);   
-   //cpu.reset();   
+   //cpu.reset();
 }
 
 async function load_tap(fileName) {

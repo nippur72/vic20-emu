@@ -47,6 +47,8 @@ function load_wasm(ready_cb) {
       vic20.peek     = instance.cwrap("sys_mem_cpu_rd"   , 'number', ['number'] );
       vic20.poke     = instance.cwrap("sys_mem_cpu_wr"   , null, ['number', 'number'] );
 
+      vic20.dump_vic = instance.cwrap("sys_dump_vic"   , null );
+
       vic20.cas_port = instance.cwrap("sys_cas_port"   , 'number');
 
       vic20.tape.insert = instance.cwrap("sys_insert_tape"  , 'bool', ['array', 'number'] );

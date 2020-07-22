@@ -82,17 +82,17 @@ dropZone.addEventListener('drop', e => {
    }
 });
 
-function droppedFile(outName, bytes) {
+async function droppedFile(outName, bytes) {
    const prg = /\.prg$/i;
    if(prg.test(outName)) {     
-      writeFile(outName, bytes);
-      crun(outName);         
+      await writeFile(outName, bytes);
+      await crun(outName);
    }
 
    const tap = /\.tap$/i;
    if(tap.test(outName)) {
-      writeFile(outName, bytes);
-      crun(outName);
+      await writeFile(outName, bytes);
+      await crun(outName);
    }
 }
 
@@ -110,31 +110,21 @@ function getQueryStringObject(options) {
    return o;
 }
 
-function parseQueryStringCommands() {
-   options = getQueryStringObject(options);
+async function parseQueryStringCommands() {
+   options = getQueryStringObject(options);  
 
-   if(options.restore !== false) {
-      // try to restore previous state, if any
-      restoreState();
+   if(options.config !== undefined) {
+      vic20.config(options.config);
+   }
+
+   if(options.joy !== undefined) {
+      vic20.emu_joy(options.joy);
    }
 
    if(options.load !== undefined) {
-      const name = options.load;      
-      fetchProgramAll(name);            
-   }
-
-   if(options.bt !== undefined || 
-      options.bb !== undefined || 
-      options.bh !== undefined || 
-      options.aspect !== undefined
-   ) {
-      if(options.bt     !== undefined) border_top    = Number(options.bt); 
-      if(options.bb     !== undefined) border_bottom = Number(options.bb);
-      if(options.bh     !== undefined) border_h      = Number(options.bh);
-      if(options.aspect !== undefined) aspect        = Number(options.aspect);
-      calculateGeometry();
-      onResize();
-   }
+      const name = options.load;
+      setTimeout(()=>fetchProgramAll(name),2000);
+   }   
 }
 
 async function fetchProgramAll(name) {
@@ -143,10 +133,9 @@ async function fetchProgramAll(name) {
       `${name}.prg`,
       `${name}/${name}`,
       `${name}/${name}.prg`,      
-      `prg/${name}`,
-      `prg/${name}.bin`,
+      `prg/${name}`,     
       `prg/${name}/${name}`,
-      `prg/${name}/${name}.prg`      
+      `prg/${name}/${name}.prg`
    ];
 
    for(let t=0;t<candidates.length;t++) {
@@ -158,7 +147,7 @@ async function fetchProgramAll(name) {
 
 async function fetchProgram(name)
 {
-   console.log(`wanting to load ${name}`);
+   //console.log(`wanting to load ${name}`);
    try
    {
       const response = await fetch(`software/${name}`);

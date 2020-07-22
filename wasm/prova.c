@@ -151,6 +151,13 @@ uint8_t sys_cas_port() {
    return sys.cas_port;
 }
 
+EMSCRIPTEN_KEEPALIVE
+void sys_dump_vic() {
+   for(int t=0;t<16;t++) {
+      byte unused = (byte) EM_ASM_INT({ console.log($0, $1); }, t, sys.vic.regs[t] );
+   }
+}
+
 
 ///* enable/disable joystick emulation */
 //void vic20_set_joystick_type(vic20_t* sys, vic20_joystick_type_t type);

@@ -12,6 +12,13 @@ Copyright (c) 2017 Andre Weissflog
 Open the emulator directly in your browser: [vic20-emu](https://nippur72.github.io/vic20-emu/)
 
 
+QUERYSTRING OPTIONS
+===================
+- `config=n` sets memory config (n=0,1,...)
+- `joy=1` emulates joystick
+- `load=program.prg` loads and exectutes a program
+
+
 LOADING AND SAVING FILES
 ========================
 

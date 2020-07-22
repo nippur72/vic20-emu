@@ -244,6 +244,14 @@ bool vic20_is_tape_motor_on(vic20_t* sys);
 #define _VIC20_STD_DISPLAY_WIDTH  (208)
 #define _VIC20_STD_DISPLAY_HEIGHT (264)
 
+/*
+// parameters for debug_vis = true
+#define _VIC20_DISPLAY_X (0)
+#define _VIC20_DISPLAY_Y (0)
+#define _VIC20_STD_DISPLAY_WIDTH  (284)
+#define _VIC20_STD_DISPLAY_HEIGHT (312)
+*/
+
 #define _VIC20_DBG_DISPLAY_WIDTH ((_M6561_HTOTAL+1)*4)
 #define _VIC20_DBG_DISPLAY_HEIGHT (_M6561_VTOTAL+1)
 #define _VIC20_DISPLAY_SIZE (_VIC20_DBG_DISPLAY_WIDTH*_VIC20_DBG_DISPLAY_HEIGHT*4)

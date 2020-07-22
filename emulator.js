@@ -89,11 +89,9 @@ function oneFrame() {
 
 function main() {
 
-   parseQueryStringCommands();
-
    vic20.config(0);
 
-   goAudio();
+   parseQueryStringCommands();
 
    // rom autoload
    if(autoload !== undefined) {
@@ -101,6 +99,7 @@ function main() {
    }
 
    // starts drawing frames
+   goAudio();
    oneFrame();
 }
 

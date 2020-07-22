@@ -150,30 +150,6 @@ function reset(value, bitmask) {
    return value & (0xFF ^ bitmask);
 }
 
-function saveState() {
-   const saveObject = {
-      ram: Array.from(ram),
-      cpu: cpu.getState()  
-   };   
-
-   window.localStorage.setItem(`lm80c_emu_state`, JSON.stringify(saveObject));
-}
-
-function restoreState() {   
-   try
-   {
-      let s = window.localStorage.getItem(`lm80c_emu_state`);
-      if(s === null) return;   
-      s = JSON.parse(s);            
-      copyArray( s.ram, ram);
-      cpu.setState(s.cpu);
-   }
-   catch(error)
-   {
-
-   }
-}
-
 function dumpPointers() {
    console.log(`
    +------------------------+ <-  (0x${hex(PROGND,4)}) ${hex(mem_read_word(PROGND),4)}

@@ -43,9 +43,11 @@ function load_wasm(ready_cb) {
 
       vic20.emu_joy  = instance.cwrap("sys_set_joystick_type" , null, ['number'] );
 
-      vic20.load_prg = instance.cwrap("sys_quick_load"   , null, ['array', 'number'] );
-      vic20.peek     = instance.cwrap("sys_mem_cpu_rd"   , 'number', ['number'] );
-      vic20.poke     = instance.cwrap("sys_mem_cpu_wr"   , null, ['number', 'number'] );
+      vic20.load_prg         = instance.cwrap("sys_quick_load" , null, ['array', 'number'] );
+      vic20.insert_cartdrige = instance.cwrap("sys_insert_rom_cartdrige" , null, ['array', 'number'] );
+
+      vic20.peek        = instance.cwrap("sys_mem_cpu_rd"   , 'number', ['number'] );
+      vic20.poke        = instance.cwrap("sys_mem_cpu_wr"   , null, ['number', 'number'] );
 
       vic20.dump_vic = instance.cwrap("sys_dump_vic"   , null );
 

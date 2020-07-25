@@ -110,6 +110,7 @@ function getQueryStringObject(options) {
    return o;
 }
 
+
 async function parseQueryStringCommands() {
    options = getQueryStringObject(options);  
 
@@ -123,7 +124,7 @@ async function parseQueryStringCommands() {
 
    if(options.load !== undefined) {
       const name = options.load;
-      setTimeout(()=>fetchProgramAll(name),2000);
+      await fetchProgramAll(name);
    }   
 }
 

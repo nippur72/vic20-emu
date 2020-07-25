@@ -66,7 +66,6 @@ function mem_read_word(address) {
 
 async function crun(filename) {
    await load(filename);
-   paste("RUN\r");
 }
 
 function pasteLine(text) {

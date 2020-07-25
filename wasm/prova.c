@@ -99,6 +99,10 @@ EMSCRIPTEN_KEEPALIVE
 void sys_quick_load(uint8_t *bytes, int num_bytes) {
    vic20_quickload(&sys, bytes, num_bytes);
 }
+EMSCRIPTEN_KEEPALIVE
+void sys_insert_rom_cartdrige(uint8_t *bytes, int num_bytes) {
+   vic20_insert_rom_cartridge(&sys, bytes, num_bytes);
+}
 
 EMSCRIPTEN_KEEPALIVE
 uint8_t sys_mem_cpu_rd(uint16_t address) {

@@ -76,29 +76,39 @@ async function save(filename, p1, p2) {
 function loadBytes(bytes, address, fileName) {
 
    let buffer = new Uint8Array(bytes.buffer);
-   vic20.load_prg(buffer, bytes.length);
 
-   /*
-   const startAddress = (address === undefined) ? mem_read_word(BASTXT) : address;
-   const endAddress = startAddress + bytes.length - 1;
+   const load_address = (buffer[0] | buffer[1] << 8);
 
-   for(let i=0,t=startAddress;t<=endAddress;i++,t++) {
-      mem_write(t, bytes[i]);
+   // if config was not specified (auto) change config
+   if(options.config == undefined) {
+           if(load_address == 0x1001) vic20.config(0);  // unexpanded
+      else if(load_address == 0x0401) vic20.config(1);  // 3k expansion
+      else if(load_address == 0x1201) vic20.config(3);  // 8K or more expansion
+      else vic20.config(0);
    }
 
-   // modify end of basic program pointer   
-   if(startAddress === mem_read_word(BASTXT)) mem_write_word(PROGND, endAddress+1);
-   */
+   if(load_address == 0xA000) {
+      // it's a cartdrige
+      vic20.insert_cartdrige(buffer, bytes.length);
+   }
+   else {
+      // it's normal .prg
+      setTimeout(()=>do_load(buffer, bytes.length), 2000);
+   }
 
    if(fileName === undefined) fileName = "autoload";
    //console.log(`loaded "${fileName}" ${bytes.length} bytes from ${hex(startAddress,4)}h to ${hex(endAddress,4)}h`);
    console.log(`loaded "${fileName}" ${bytes.length} bytes`);
 }
 
+function do_load(buffer, num_bytes) {
+   vic20.load_prg(buffer, num_bytes);
+   paste("RUN\r");
+}
+
 async function load_file(fileName, address) {   
    const bytes = await readFile(fileName);
-   loadBytes(bytes, address, fileName);   
-   //cpu.reset();
+   loadBytes(bytes, address, fileName);
 }
 
 async function load_tap(fileName) {

@@ -6,6 +6,9 @@
 typedef uint8_t byte;
 typedef uint16_t word;
 
+#define CHIPS_ASSERT(c) 1
+#include <assert.h>
+
 #define CHIPS_IMPL
 
 #include "chips/m6502.h"

@@ -238,3 +238,10 @@ function led_write(value) {
    LED = value;
 }
 
+// make a long url from an existing saved program
+async function makeBase64(fileName) {
+   const bytes = await readFile(fileName);
+   let long_url = window.btoa(bytes);
+   console.log(`?b=${long_url}`);
+}
+

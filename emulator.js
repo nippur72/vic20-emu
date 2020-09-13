@@ -1,5 +1,6 @@
 "use strict";
 
+// TODO basic chain after load
 // TODO uppercase/lowercase (shift lock)
 // TODO fix for alt/cbm/shift what keyboard?
 // TODO shift problem  SHIFT + 9

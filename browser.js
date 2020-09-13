@@ -122,10 +122,19 @@ async function parseQueryStringCommands() {
       vic20.emu_joy(options.joy);
    }
 
+   if(options.b !== undefined) {
+      const encoded_file = options.b;
+      let prg = window.atob(encoded_file).split(",").map(i=>Number(i));
+      const bytes = new Uint8Array(prg);
+      let filename = "binary.prg";
+      await writeFile(filename, bytes);
+      await crun(filename);
+   }
+
    if(options.load !== undefined) {
       const name = options.load;
       await fetchProgramAll(name);
-   }   
+   }
 }
 
 async function fetchProgramAll(name) {

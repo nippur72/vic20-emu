@@ -17,7 +17,7 @@ QUERYSTRING OPTIONS
 - `config=n` sets memory config (n=0,1,...)
 - `joy=1` emulates joystick
 - `load=program.prg` loads and exectutes a program
-
+- `b=<....>` loads the specified string as a base64 binary encoded file (created with the function `makeBase64())`
 
 LOADING AND SAVING FILES
 ========================
@@ -38,6 +38,7 @@ These are the commands you can type from the JavaScript console (F12 key):
 - `remove("file.prg")` remove file from browser's cache
 - `dir()` lists files on browser's cache
 - `paste(text)` paste a string of text (e.g. containing a BASIC program)
+- `makeBase64("file.prg")` encodes the file for use with the `b=` query string parameter (see)
 
 MISC
 ========

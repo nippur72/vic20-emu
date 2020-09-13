@@ -242,6 +242,6 @@ function led_write(value) {
 async function makeBase64(fileName) {
    const bytes = await readFile(fileName);
    let long_url = window.btoa(bytes);
-   console.log(`?b=${long_url}`);
+   console.log(`https://nippur72.github.io/vic20-emu?b=${long_url}`);
 }
 

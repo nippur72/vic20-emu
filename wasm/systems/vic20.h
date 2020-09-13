@@ -668,6 +668,11 @@ static void _vic20_init_key_map(vic20_t* sys) {
                                                   /* the keyboard matrix and routed to VIA1 pin CA1 */
 }
 
+void mem_write_word(vic20_t* sys, uint16_t address, uint16_t value) {
+	mem_wr(&sys->mem_cpu, address,   (value>>0) & 0xFF);
+	mem_wr(&sys->mem_cpu, address+1, (value>>8) & 0xFF);
+}
+
 bool vic20_quickload(vic20_t* sys, const uint8_t* ptr, int num_bytes) {
     CHIPS_ASSERT(sys && sys->valid && ptr && (num_bytes > 0));
     if (num_bytes < 2) {
@@ -680,17 +685,14 @@ bool vic20_quickload(vic20_t* sys, const uint8_t* ptr, int num_bytes) {
     while (addr < end_addr) {
         mem_wr(&sys->mem_cpu, addr++, *ptr++);
     }
-
+    
     // update the BASIC pointers
-	mem_wr(&sys->mem_cpu, 0x2d, (end_addr>>0) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0x2e, (end_addr>>8) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0x2f, (end_addr>>0) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0x30, (end_addr>>8) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0x31, (end_addr>>0) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0x32, (end_addr>>8) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0xae, (end_addr>>0) & 0xFF);
-	mem_wr(&sys->mem_cpu, 0xaf, (end_addr>>8) & 0xFF);
-
+	mem_write_word(sys, 0x2d, end_addr);	
+	mem_write_word(sys, 0x2f, end_addr);	
+	mem_write_word(sys, 0x31, end_addr);	
+	mem_write_word(sys, 0x33, end_addr);	
+	mem_write_word(sys, 0xae, end_addr);
+    
     return true;
 }
 

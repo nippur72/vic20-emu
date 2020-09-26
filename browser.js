@@ -120,6 +120,7 @@ async function parseQueryStringCommands() {
 
    if(options.joy !== undefined) {
       vic20.emu_joy(options.joy);
+      console.log(`Joystick emulation ${options.joy==1?"enabled":"disabled"}`);
    }
 
    if(options.b !== undefined) {

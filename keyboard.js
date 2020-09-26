@@ -11,6 +11,7 @@ function keyDown(e) {
       last_scroll_lock = scroll_lock_key_pressed;
       let emu_joystick = scroll_lock_key_pressed ? 1 : 0;
       vic20.emu_joy(emu_joystick);
+      console.log(`Joystick emulation ${emu_joystick==1?"enabled":"disabled"}`);
    }
 
    // disable auto repeat, as it is handled on the firmware

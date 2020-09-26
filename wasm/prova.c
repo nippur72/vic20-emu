@@ -44,8 +44,7 @@ void sys_init(vic20_memory_config_t config) {
 
    desc.user_data = NULL;                            /* optional user-data for callback functions */
 
-   desc.c1530_enabled = false;                        /* enable the C1530 datassette emulation */
-   desc.joystick_type = VIC20_JOYSTICKTYPE_NONE;     /* default is VIC20_JOYSTICK_NONE */
+   desc.c1530_enabled = false;                       /* enable the C1530 datassette emulation */
    desc.mem_config    = config;                      /* default is VIC20_MEMCONFIG_STANDARD */
 
    // video
@@ -130,7 +129,8 @@ void sys_joystick(uint8_t joy_mask) {
 
 EMSCRIPTEN_KEEPALIVE
 void sys_set_joystick_type(vic20_joystick_type_t type) {
-   vic20_set_joystick_type(&sys, type);
+   desc.joystick_type = type;
+   vic20_set_joystick_type(&sys, desc.joystick_type);
 }
 
 EMSCRIPTEN_KEEPALIVE

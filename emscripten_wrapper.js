@@ -10,13 +10,6 @@ let rom_load;
 let io_read;
 let io_write;
 
-let lm80c_tick;
-let lm80c_tick_line;
-let lm80c_set_debug;
-let lm80c_ctc_enable;
-let lm80c_init;
-let lm80c_reset;
-
 let keyboard_reset;
 let keyboard_press;
 let keyboard_release;

@@ -110,7 +110,6 @@ function getQueryStringObject(options) {
    return o;
 }
 
-
 async function parseQueryStringCommands() {
    options = getQueryStringObject(options);  
 
@@ -134,26 +133,15 @@ async function parseQueryStringCommands() {
 
    if(options.load !== undefined) {
       const name = options.load;
-      await fetchProgramAll(name);
+      if(name.startsWith("http")) {
+         // external load
+         externalLoad("loadPrg", name);
+      }
+      else {
+         // internal load
+         await fetchProgram(name);
+      }   
    }
-}
-
-async function fetchProgramAll(name) {
-   const candidates = [
-      name,
-      `${name}.prg`,
-      `${name}/${name}`,
-      `${name}/${name}.prg`,      
-      `prg/${name}`,     
-      `prg/${name}/${name}`,
-      `prg/${name}/${name}.prg`
-   ];
-
-   for(let t=0;t<candidates.length;t++) {
-      if(await fetchProgram(candidates[t])) return;   
-   }
-
-   console.log(`cannot load "${name}"`);
 }
 
 async function fetchProgram(name)
@@ -164,7 +152,10 @@ async function fetchProgram(name)
       const response = await fetch(`software/${name}`);
       if(response.status === 404) return false;
       const bytes = new Uint8Array(await response.arrayBuffer());
-      droppedFile(name, bytes);
+      loadBytes({
+         buffer: bytes,
+         length: bytes.length
+      });
       return true;
    }
    catch(err)
@@ -172,3 +163,4 @@ async function fetchProgram(name)
       return false;      
    }
 }
+

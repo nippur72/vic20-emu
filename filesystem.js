@@ -74,7 +74,6 @@ async function save(filename, p1, p2) {
 }
 
 function loadBytes(bytes, address, fileName) {
-
    let buffer = new Uint8Array(bytes.buffer);
 
    const load_address = (buffer[0] | buffer[1] << 8);

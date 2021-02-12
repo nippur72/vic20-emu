@@ -51,7 +51,7 @@ let imagedata_buffer = new ArrayBuffer(tms9928a_imagedata.data.length);
 let imagedata_buf8 = new Uint8ClampedArray(imagedata_buffer);
 let imagedata_data = new Uint32Array(imagedata_buffer);
 
-
+// called back by WASM at the end of each video frame
 function vdp_screen_update(ptr) {
    let start = ptr / wasm_instance.HEAPU32.BYTES_PER_ELEMENT;
    let size = WW*HH;
@@ -77,7 +77,6 @@ function vdp_screen_update(ptr) {
    tms9928a_imagedata.data.set(imagedata_buf8);
    tms9928a_context.putImageData(tms9928a_imagedata, POS_X, POS_Y);
 
-   // update LED
-   document.getElementById("LED").style.visibility = LED>0 ? "visible" : "hidden";
+   frames++;
+   if(end_of_frame_hook !== undefined) end_of_frame_hook();
 }
-

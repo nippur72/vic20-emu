@@ -8,36 +8,26 @@
 
 /******************/
 
-const cpuSpeed = 3686400;    // 7372800/2 number given by @leomil72
-const vdcSpeed = 10738635;   // number given by @leomil72
-const frameRate = vdcSpeed/(342*262*2);   // ~60 Hz
-const frameDuration = 1000/frameRate;     // duration of 1 frame in msec
-const cyclesPerLine = cpuSpeed / vdcSpeed * 342;
-
 let stopped = false; // allows to stop/resume the emulation
 
 let frames = 0;
-let nextFrameTime = 0;
 let averageFrameTime = 0;
-let minFrameTime = Number.MAX_VALUE;
 
 let cycle = 0;
 let total_cycles = 0;
 
 let throttle = false;
 
+let end_of_frame_hook = undefined;
+
 let options = {
    load: undefined,
    restore: false
 };
 
-// scanline version
-function renderLines() {
-   vic20.exec();
-}
+let last_keyboardpoll = 0;
 
-function renderAllLines() {
-
+function poll_keyboard() {
    // poll keyboard
    if(keyboard_buffer.length > 0) {
       let key_event = keyboard_buffer[0];
@@ -54,39 +44,28 @@ function renderAllLines() {
          keys.forEach((k) => vic20.key_up(k));
       }
    }
-
-   renderLines();
 }
 
+let last_timestamp = 0;
 
-let nextFrame;
-let end_of_frame_hook = undefined;
+function oneFrame(timestamp) {
+   let stamp = timestamp == undefined ? last_timestamp : timestamp;
+   let usec = (stamp - last_timestamp)*1000;
+   last_timestamp = stamp;
 
-function oneFrame() {
-   const startTime = new Date().getTime();      
+   if(usec > 100000) usec = 100000;
 
-   if(nextFrame === undefined) nextFrame = startTime;
-
-   nextFrame = nextFrame + (1000/frameRate); 
-
-   renderAllLines();
-   frames++;   
-
-   if(end_of_frame_hook !== undefined) end_of_frame_hook();
-
-   const now = new Date().getTime();
-   const elapsed = now - startTime;
-   averageFrameTime = averageFrameTime * 0.992 + elapsed * 0.008;
-   if(elapsed < minFrameTime) minFrameTime = elapsed;
-
-   let time_out = nextFrame - now;
-   if(time_out < 0 || throttle) {
-      time_out = 0;
-      nextFrame = undefined;      
+   if(stamp - last_keyboardpoll > 30) {
+      poll_keyboard();
+      last_keyboardpoll = stamp;
    }
-   if(!stopped) setTimeout(()=>oneFrame(), time_out);   
-}
 
+   vic20.exec_us(usec);
+
+   averageFrameTime = averageFrameTime * 0.992 + usec * 0.008;
+
+   if(!stopped) requestAnimationFrame(oneFrame);
+}
 
 function main() {
 
@@ -102,8 +81,4 @@ function main() {
    // starts drawing frames
    goAudio();
    oneFrame();
-}
-
-function cpu_actual_speed() {
-   return (total_cycles / (new Date().valueOf() - cpu_started_msec)) * 1000;
 }

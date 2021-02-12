@@ -127,9 +127,9 @@ function go() {
    console.log("emulation resumed");
 }
 
-function info() { 
-   const average = averageFrameTime; /* oneFrameTimeSum/frames; */
-   console.log(`frame rendering: min ${Math.round(minFrameTime*10,2)/10} ms (load=${Math.round(minFrameTime/frameDuration*100*10,2)/10} %) average ${Math.round(average*10,2)/10} ms (${Math.round(average/frameDuration*100*10,2)/10} %)`);   
+function info() {
+   const average = averageFrameTime/1000;
+   console.log(`frame rate: average ${Math.round(average*10,2)/10} ms (${Math.round(1/average*1000)} Hz)`);
 }
 
 function set_bit(value, bitn) {
@@ -227,15 +227,6 @@ function stop_counter() {
    let elapsed = now - cnt;   
    counter_avg = 0.9 * counter_avg + 0.1 * elapsed;
    return counter_avg;
-}
-
-let LED = 0;
-function led_read() {
-   return LED;
-}
-
-function led_write(value) {
-   LED = value;
 }
 
 // make a long url from an existing saved program

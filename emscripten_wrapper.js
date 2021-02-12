@@ -28,6 +28,7 @@ function load_wasm(ready_cb) {
       vic20.init     = instance.cwrap("sys_init", null);
       vic20.config   = instance.cwrap("sys_config", null, ['number']);
       vic20.exec     = instance.cwrap("sys_exec", null);
+      vic20.exec_us  = instance.cwrap("sys_exec_us", ['number']);
       vic20.reset    = instance.cwrap("sys_reset", null);
 
       vic20.key_down = instance.cwrap("sys_key_down" , null, ['number'] );

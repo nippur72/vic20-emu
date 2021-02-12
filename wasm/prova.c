@@ -68,12 +68,6 @@ void sys_init(vic20_memory_config_t config) {
    desc.rom_kernal_size = 8192;
 
    vic20_init(&sys, &desc);
-
-   /*
-   int w = vic20_std_display_width();
-   int h = vic20_std_display_height();
-   byte unused = (byte) EM_ASM_INT({ console.log($0, $1); }, w, h );
-   */
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -82,9 +76,13 @@ void sys_reset() {
 }
 
 EMSCRIPTEN_KEEPALIVE
+void sys_exec_us(uint32_t msec) {
+   vic20_exec(&sys, msec);
+}
+
+EMSCRIPTEN_KEEPALIVE
 void sys_exec() {
    vic20_exec(&sys, 16666);
-   //byte unused = (byte) EM_ASM_INT({ vdp_screen_update($0); }, pixel_buffer );
 }
 
 EMSCRIPTEN_KEEPALIVE

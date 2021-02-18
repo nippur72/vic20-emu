@@ -18,8 +18,6 @@ function onResize(e) {
       canvas.style.width  = "100vmin";
       canvas.style.height = `${(1/aspect)*100}vmin`;
    }
-
-   const trueHeight = canvas.offsetHeight
 }
 
 function goFullScreen() 

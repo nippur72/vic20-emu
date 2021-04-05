@@ -92,6 +92,7 @@ function loadBytes(bytes, address, fileName) {
    }
    else {
       // it's normal .prg
+      // TODO remove timeout, it does't work if open in new tab with mouse wheel button
       setTimeout(()=>do_load(buffer, bytes.length), 2000);
    }
 

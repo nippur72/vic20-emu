@@ -89,7 +89,7 @@ function paste(line) {
 
 function pasteChar(c) {
    while(vic20.peek(198) !== 0) {
-      renderLines();
+      vic20.exec_us(20000);
    }
    vic20.poke(631,c);
    vic20.poke(198,1);

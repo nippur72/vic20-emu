@@ -46,6 +46,35 @@ function poll_keyboard() {
    }
 }
 
+function updateGamePad() {
+   const VIC20_JOYSTICK_UP    = (1<<0);
+   const VIC20_JOYSTICK_DOWN  = (1<<1);
+   const VIC20_JOYSTICK_LEFT  = (1<<2);
+   const VIC20_JOYSTICK_RIGHT = (1<<3);
+   const VIC20_JOYSTICK_BTN   = (1<<4);
+
+   let gamepads = navigator.getGamepads();
+   if(gamepads.length < 1) return;
+
+   // joy 0
+   let gamepad = gamepads[0];
+   if(gamepad === null) return;
+
+   let joy0 = 0;
+
+   if(gamepad.axes[0] < -0.5) joy0 = set(joy0, VIC20_JOYSTICK_LEFT);   else joy0 = reset(joy0, VIC20_JOYSTICK_LEFT);
+   if(gamepad.axes[0] >  0.5) joy0 = set(joy0, VIC20_JOYSTICK_RIGHT);  else joy0 = reset(joy0, VIC20_JOYSTICK_RIGHT);
+   if(gamepad.axes[1] < -0.5) joy0 = set(joy0, VIC20_JOYSTICK_UP);     else joy0 = reset(joy0, VIC20_JOYSTICK_UP);
+   if(gamepad.axes[1] >  0.5) joy0 = set(joy0, VIC20_JOYSTICK_DOWN);   else joy0 = reset(joy0, VIC20_JOYSTICK_DOWN);
+
+   if(gamepad.buttons[0].pressed|
+      gamepad.buttons[1].pressed|
+      gamepad.buttons[2].pressed|
+      gamepad.buttons[3].pressed) joy0 = set(joy0, VIC20_JOYSTICK_BTN);   else joy0 = reset(joy0, VIC20_JOYSTICK_BTN);
+
+   vic20.joystick(joy0);
+}
+
 let last_timestamp = 0;
 
 function oneFrame(timestamp) {
@@ -58,6 +87,7 @@ function oneFrame(timestamp) {
    if(stamp - last_keyboardpoll > 30) {
       poll_keyboard();
       last_keyboardpoll = stamp;
+      updateGamePad();
    }
 
    vic20.exec_us(usec);

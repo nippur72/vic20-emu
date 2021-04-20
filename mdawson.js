@@ -18,16 +18,16 @@ function binToArray(data) {
    return out;
 }
 
-function externalLoad(cmd,url,format,subfile) {	
-	console.log("externalLoad cmd="+cmd+" url="+url+" format="+format+" subfile="+subfile);
-	var head= document.getElementsByTagName('head')[0];
-	var script= document.createElement('script');
-	script.type= 'text/javascript';	
-	script.src= 'https://www.mdawson.net/vic20chrome/vic20/prgtojsloader.php?cmd='+cmd+'&prgurl='+url+'&subfile='+subfile;
-	head.appendChild(script);
+function externalLoad(cmd,url,format,subfile) {
+   console.log("externalLoad cmd="+cmd+" url="+url+" format="+format+" subfile="+subfile);
+   let head = document.getElementsByTagName('head')[0];
+   let script = document.createElement('script');
+   script.type = 'text/javascript';
+   script.src = 'https://www.mdawson.net/vic20chrome/vic20/prgtojsloader.php?cmd='+cmd+'&prgurl='+url+'&subfile='+subfile;
+   head.appendChild(script);
 }
 
-function loadPrg(src) {   
+function loadPrg(src) {
    if(src.length !== 1) return;
 
    let bin = binToArray(src[0]);

@@ -58,6 +58,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// #include "..\tms9928.h"
+// extern tms9928_t vdp;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -577,6 +580,33 @@ static uint64_t _vic20_tick(vic20_t* sys, uint64_t pins) {
         c1530_tick(&sys->c1530);
     }
 
+    // tick the TMS9928 on $A000 - $A001
+    /*
+    if((pins & 0xFFFE) == 0xA000) {
+      // byte unused = (byte) EM_ASM_INT({ console.log('tms access'); }, 0 );
+      int MODE = pins & 1;      
+      int read = pins & M6502_RW;  // CSR
+      
+      if(read) {
+         // read
+         byte data;
+         if(MODE == 0) data = tms9928_vram_read(&vdp);
+         else          data = tms9928_register_read(&vdp);
+         M6502_SET_DATA(pins, data);
+         //if(MODE == 0) { byte unused = (byte) EM_ASM_INT({ console.log('tms vram read:', $0); }, data ); }
+         //else          { byte unused = (byte) EM_ASM_INT({ console.log('tms reg read:', $0); }, data ); }         
+      }
+      else  {
+         byte data = M6502_GET_DATA(pins);
+         if(MODE == 0) tms9928_vram_write(&vdp, data);
+         else          tms9928_register_write(&vdp, data);
+         
+         //if(MODE == 0) { byte unused = (byte) EM_ASM_INT({ console.log('tms vram write:', $0); }, data ); }
+         //else          { byte unused = (byte) EM_ASM_INT({ console.log('tms reg write:', $0); }, data ); }         
+      }   
+    }
+    */
+
     return pins;
 }
 
@@ -593,6 +623,17 @@ void vic20_exec(vic20_t* sys, uint32_t micro_seconds) {
     }
     sys->pins = pins;
     kbd_update(&sys->kbd, micro_seconds);
+
+    // TMS9928
+    /*
+    if(1) {
+      if(micro_seconds > 10000) {
+         for(int t=0;t<262;t++) {
+            tms9928_drawline(&vdp);
+         }
+      }  
+    }
+    */
 }
 
 static uint16_t _vic20_vic_fetch(uint16_t addr, void* user_data) {

@@ -22,6 +22,8 @@ typedef uint16_t word;
 
 #include "roms/vic20-roms.h"
 
+// #include "vdp.c"
+
 vic20_desc_t desc;
 vic20_t sys;
 
@@ -36,7 +38,7 @@ void audio_cb(const float* samples, int num_samples, void* user_data) {
 }
 
 void end_frame_cb(void* user_data) {
-   byte unused = (byte) EM_ASM_INT({ vdp_screen_update($0); }, pixel_buffer );
+   byte unused = (byte) EM_ASM_INT({ m6561_screen_update($0); }, pixel_buffer );
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -68,6 +70,8 @@ void sys_init(vic20_memory_config_t config) {
    desc.rom_kernal_size = 8192;
 
    vic20_init(&sys, &desc);
+
+   // vdp_init();
 }
 
 EMSCRIPTEN_KEEPALIVE

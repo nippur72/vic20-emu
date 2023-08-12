@@ -8,11 +8,11 @@
     ~~~C
     #define CHIPS_IMPL
     ~~~
-    before you include this file in *one* C or C++ file to create the
+    before you include this file in *one* C or C++ file to create the 
     implementation.
 
     Optionally provide the following macros with your own implementation
-    ~~~C
+    ~~~C    
     CHIPS_ASSERT(c)
     ~~~
 
@@ -42,21 +42,16 @@
         2. Altered source versions must be plainly marked as such, and must not
         be misrepresented as being the original software.
         3. This notice may not be removed or altered from any source
-        distribution.
+        distribution. 
 #*/
 #include <stdint.h>
 #include <stdbool.h>
-#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define M6561_FRAMEBUFFER_WIDTH (512)
-#define M6561_FRAMEBUFFER_HEIGHT (320)
-#define M6561_FRAMEBUFFER_SIZE_BYTES (M6561_FRAMEBUFFER_WIDTH * M6561_FRAMEBUFFER_HEIGHT)
-
-// address pins (see control pins for chip-select condition)
+/* address pins (see control pins for chip-select condition) */
 #define M6561_A0    (1ULL<<0)
 #define M6561_A1    (1ULL<<1)
 #define M6561_A2    (1ULL<<2)
@@ -72,7 +67,7 @@ extern "C" {
 #define M6561_A12   (1ULL<<12)
 #define M6561_A13   (1ULL<<13)
 
-// data pins (the 4 additional color data pins are not emulated as pins)
+/* data pins (the 4 additional color data pins are not emulated as pins) */
 #define M6561_D0    (1ULL<<16)
 #define M6561_D1    (1ULL<<17)
 #define M6561_D2    (1ULL<<18)
@@ -82,7 +77,7 @@ extern "C" {
 #define M6561_D6    (1ULL<<22)
 #define M6561_D7    (1ULL<<23)
 
-/* control pins shared with CPU
+/* control pins shared with CPU 
     NOTE that a real VIC has no dedicated chip-select pin, instead
     registers are read and written during the CPU's 'shared bus
     half-cycle', and the following address bus pin mask is
@@ -103,25 +98,25 @@ extern "C" {
         vic_pins |= M6561_CS;
     }
 */
-#define M6561_RW        (1ULL<<24)      // same as M6502_RW
-#define M6561_CS        (1ULL<<40)      // virtual chip-select pin
-#define M6561_SAMPLE    (1ULL<<41)      // virtual 'audio sample ready' pin
+#define M6561_RW        (1ULL<<24)      /* same as M6502_RW */
+#define M6561_CS        (1ULL<<40)      /* virtual chip-select pin */
+#define M6561_SAMPLE    (1ULL<<41)      /* virtual 'audio sample ready' pin */
 
-// use this macro to check whether the address bus pins are in the right chip-select state
+/* use this macro to check whether the address bus pins are in the right chip-select state */
 #define M6561_SELECTED_ADDR(pins) ((pins&(M6561_A13|M6561_A12|M6561_A11|M6561_A10|M6561_A9|M6561_A8))==M6561_A12)
 
 #define M6561_NUM_REGS (16)
 #define M6561_REG_MASK (M6561_NUM_REGS-1)
 
-// sound DC adjustment buffer length
+/* sound DC adjustment buffer length */
 #define M6561_DCADJ_BUFLEN (512)
 
-// extract 8-bit data bus from 64-bit pins
-#define M6561_GET_DATA(p) ((uint8_t)(((p)&0xFF0000ULL)>>16))
-// merge 8-bit data bus value into 64-bit pins
+/* extract 8-bit data bus from 64-bit pins */
+#define M6561_GET_DATA(p) ((uint8_t)((p&0xFF0000ULL)>>16))
+/* merge 8-bit data bus value into 64-bit pins */
 #define M6561_SET_DATA(p,d) {p=(((p)&~0xFF0000ULL)|(((d)<<16)&0xFF0000ULL));}
 
-// memory fetch callback, used to feed pixel- and color-data into the m6561
+/* memory fetch callback, used to feed pixel- and color-data into the m6561 */
 typedef uint16_t (*m6561_fetch_t)(uint16_t addr, void* user_data);
 
 /* end of video frame callback */
@@ -129,66 +124,68 @@ typedef void (*m6561_end_frame_t)(void* user_data);
 
 /* setup parameters for m6561_init() function */
 typedef struct {
-    // pointer and size of external framebuffer
-    chips_range_t framebuffer;
-    // visible CRT area decoded into framebuffer (in pixels)
-    chips_rect_t screen;
-    // the memory-fetch callback
+    /* pointer to RGBA8 framebuffer for generated image (optional) */
+    uint32_t* rgba8_buffer;
+    /* size of the RGBA framebuffer (optional) */
+    uint32_t rgba8_buffer_size;
+    /* visible CRT area blitted to rgba8_buffer (in pixels) */
+    uint16_t vis_x, vis_y, vis_w, vis_h;
+    /* the memory-fetch callback */
     m6561_fetch_t fetch_cb;
     /* end of video frame callback */
     m6561_end_frame_t end_frame_cb;
     /* optional user-data for fetch callback */
     void* user_data;
-    // frequency at which the tick function is called (for audio generation)
+    /* frequency at which the tick function is called (for audio generation) */
     int tick_hz;
-    // sound sample frequency
+    /* sound sample frequency */
     int sound_hz;
-    // sound sample magnitude/volume (0.0..1.0)
+    /* sound sample magnitude/volume (0.0..1.0)*/
     float sound_magnitude;
 } m6561_desc_t;
 
-// raster unit state
+/* raster unit state */
 typedef struct {
-    uint8_t h_count;        // horizontal tick counter
-    uint16_t v_count;       // line counter
-    uint16_t vc;            // video matrix counter
-    uint16_t vc_base;       // vc reload value at start of line
-    uint8_t vc_disabled;    // if != 0, video counter inactive
-    uint8_t rc;             // 4-bit raster counter (0..7 or 0..15)
-    uint8_t row_height;     // either 8 or 16
-    uint8_t row_count;      // character row count
+    uint8_t h_count;        /* horizontal tick counter */
+    uint16_t v_count;       /* line counter */
+    uint16_t vc;            /* video matrix counter */
+    uint16_t vc_base;       /* vc reload value at start of line */
+    uint8_t vc_disabled;    /* if != 0, video counter inactive */
+    uint8_t rc;             /* 4-bit raster counter (0..7 or 0..15) */
+    uint8_t row_height;     /* either 8 or 16 */
+    uint8_t row_count;      /* character row count */
 } m6561_raster_unit_t;
 
-// memory unit state
+/* memory unit state */
 typedef struct {
-    uint16_t c_addr_base;   // character access base address
-    uint16_t g_addr_base;   // graphics access base address
-    uint16_t c_value;       // last fetched character access value
+    uint16_t c_addr_base;   /* character access base address */
+    uint16_t g_addr_base;   /* graphics access base address */
+    uint16_t c_value;       /* last fetched character access value */
 } m6561_memory_unit_t;
 
-// graphics unit state
+/* graphics unit state */
 typedef struct {
-    uint8_t shift;          // current pixel shifter
-    uint8_t color;          // last fetched color value
-    bool inv_color;         // true when bit 3 of CRF is clear
-    uint8_t bg_color;       // current background color RGBA
-    uint8_t brd_color;      // border color RGBA
-    uint8_t aux_color;      // auxiliary color RGBA
+    uint8_t shift;          /* current pixel shifter */
+    uint8_t color;          /* last fetched color value */
+    bool inv_color;         /* true when bit 3 of CRF is clear */
+    uint32_t bg_color;      /* current background color RGBA */
+    uint32_t brd_color;     /* border color RGBA */
+    uint32_t aux_color;     /* auxiliary color RGBA */
 } m6561_graphics_unit_t;
 
-// border unit state
+/* border unit state */
 typedef struct {
     uint8_t left, right;
     uint16_t top, bottom;
-    uint8_t enabled;        // if != 0, in border area
+    uint8_t enabled;        /* if != 0, in border area */
 } m6561_border_unit_t;
 
-// CRT state tracking
+/* CRT state tracking */
 typedef struct {
-    uint16_t x, y;              // beam pos
-    uint16_t vis_x0, vis_y0, vis_x1, vis_y1;  // the visible area
-    uint16_t vis_w, vis_h;      // width of visible area
-    uint8_t* fb;
+    uint16_t x, y;              /* beam pos */
+    uint16_t vis_x0, vis_y0, vis_x1, vis_y1;  /* the visible area */
+    uint16_t vis_w, vis_h;      /* width of visible area */
+    uint32_t* rgba8_buffer;
 } m6561_crt_t;
 
 /* sound generator state */
@@ -210,7 +207,6 @@ typedef struct {
     float output;      /* output of the generator */ 
 } m6561_noise_t;
 
-
 typedef struct {
     m6561_voice_t voice[3];
     m6561_noise_t noise;
@@ -227,12 +223,12 @@ typedef struct {
     float dcadj_buf[M6561_DCADJ_BUFLEN];
 } m6561_sound_t;
 
-// the m6561_t state struct
+/* the m6561_t state struct */
 typedef struct {
     uint64_t pins;
-    m6561_fetch_t fetch_cb; // memory fetch callback
-    m6561_end_frame_t end_frame_cb;  // @@@ nippur72 end of frame callback  
-    void* user_data;        // memory fetch callback user data
+    m6561_fetch_t fetch_cb;          /* memory fetch callback */
+    m6561_end_frame_t end_frame_cb;  /* end of frame callback */
+    void* user_data;                 /* memory fetch callback user data */
     bool debug_vis;
     uint8_t regs[M6561_NUM_REGS];
     m6561_raster_unit_t rs;
@@ -243,25 +239,21 @@ typedef struct {
     m6561_sound_t sound;
 } m6561_t;
 
-// initialize a new m6561_t instance
+/* initialize a new m6561_t instance */
 void m6561_init(m6561_t* vic, const m6561_desc_t* desc);
-// reset a m6561_t instance
+/* reset a m6561_t instance */
 void m6561_reset(m6561_t* vic);
-// tick the m6561_t instance
+/* tick the m6561_t instance */
 uint64_t m6561_tick(m6561_t* vic, uint64_t pins);
-// get the visible screen rect in pixels
-chips_rect_t m6561_screen(m6561_t* vic);
-// get the color palette
-chips_range_t m6561_palette(void);
-// get 32-bit RGBA8 value from color index (0..15)
-uint32_t m6561_color(size_t i);
-// prepare m6561_t snapshot for saving
-void m6561_snapshot_onsave(m6561_t* snapshot);
-// fixup m6561_t snapshot after loading
-void m6561_snapshot_onload(m6561_t* snapshot, m6561_t* sys);
+/* get the visible display width in pixels */
+int m6561_display_width(m6561_t* vic);
+/* get the visible display height in pixels */
+int m6561_display_height(m6561_t* vic);
+/* get 32-bit RGBA8 value from color index (0..15) */
+uint32_t m6561_color(int i);
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
 
 /*--- IMPLEMENTATION ---------------------------------------------------------*/
@@ -272,7 +264,7 @@ void m6561_snapshot_onload(m6561_t* snapshot, m6561_t* sys);
     #define CHIPS_ASSERT(c) assert(c)
 #endif
 
-// internal constants
+/* internal constants */
 #define _M6561_HTOTAL       (71)
 #define _M6561_VTOTAL       (312)
 #define _M6561_VRETRACEPOS  (303)
@@ -283,17 +275,18 @@ void m6561_snapshot_onload(m6561_t* snapshot, m6561_t* sys);
 #define _M6561_HVC_DISABLE (1<<0)
 #define _M6561_VVC_DISABLE (1<<1)
 
-// fixed point precision for audio sample period
+/* fixed point precision for audio sample period */
 #define _M6561_FIXEDPOINT_SCALE (16)
 
 #define _M6561_RGBA8(r,g,b) (0xFF000000|(b<<16)|(g<<8)|(r))
 
-// see VICE sources under vice/data/vic20/mike-pal.vpl
+/* see VICE sources under vice/data/vic20/mike-pal.vpl */
 static const uint32_t _m6561_colors[16] = {
+    // original chips palette with cyan modified
     _M6561_RGBA8(0x00, 0x00, 0x00),     /* black */
     _M6561_RGBA8(0xFF, 0xFF, 0xFF),     /* white */
     _M6561_RGBA8(0xB6, 0x1F, 0x21),     /* red */
-    _M6561_RGBA8(0x4D, 0xF0, 0xFF),     /* cyan */
+    _M6561_RGBA8(0x00, 0xFF, 0xFF),     /* cyan */
     _M6561_RGBA8(0xB4, 0x3F, 0xFF),     /* purple */
     _M6561_RGBA8(0x44, 0xE2, 0x37),     /* green */
     _M6561_RGBA8(0x1A, 0x34, 0xFF),     /* blue */
@@ -306,33 +299,72 @@ static const uint32_t _m6561_colors[16] = {
     _M6561_RGBA8(0x8F, 0xE4, 0x93),     /* light green */
     _M6561_RGBA8(0x82, 0x90, 0xFF),     /* ligth blue */
     _M6561_RGBA8(0xE5, 0xDE, 0x85)      /* light yellow */
+
+    // original chips palette
+    //_M6561_RGBA8(0x00, 0x00, 0x00),     /* black */
+    //_M6561_RGBA8(0xFF, 0xFF, 0xFF),     /* white */
+    //_M6561_RGBA8(0xB6, 0x1F, 0x21),     /* red */
+    //_M6561_RGBA8(0x4D, 0xF0, 0xFF),     /* cyan */
+    //_M6561_RGBA8(0xB4, 0x3F, 0xFF),     /* purple */
+    //_M6561_RGBA8(0x44, 0xE2, 0x37),     /* green */
+    //_M6561_RGBA8(0x1A, 0x34, 0xFF),     /* blue */
+    //_M6561_RGBA8(0xDC, 0xD7, 0x1B),     /* yellow */
+    //_M6561_RGBA8(0xCA, 0x54, 0x00),     /* orange */
+    //_M6561_RGBA8(0xE9, 0xB0, 0x72),     /* light orange */
+    //_M6561_RGBA8(0xE7, 0x92, 0x93),     /* light red */
+    //_M6561_RGBA8(0x9A, 0xF7, 0xFD),     /* light cyan */
+    //_M6561_RGBA8(0xE0, 0x9F, 0xFF),     /* light purple */
+    //_M6561_RGBA8(0x8F, 0xE4, 0x93),     /* light green */
+    //_M6561_RGBA8(0x82, 0x90, 0xFF),     /* ligth blue */
+    //_M6561_RGBA8(0xE5, 0xDE, 0x85)      /* light yellow */
+
+/*
+    // palette from MAME
+	_M6561_RGBA8(0x00, 0x00, 0x00),
+	_M6561_RGBA8(0xff, 0xff, 0xff),
+	_M6561_RGBA8(0xf0, 0x00, 0x00),
+	_M6561_RGBA8(0x00, 0xf0, 0xf0),
+	_M6561_RGBA8(0x60, 0x00, 0x60),
+	_M6561_RGBA8(0x00, 0xa0, 0x00),
+	_M6561_RGBA8(0x00, 0x00, 0xf0),
+	_M6561_RGBA8(0xd0, 0xd0, 0x00),
+	_M6561_RGBA8(0xc0, 0xa0, 0x00),
+	_M6561_RGBA8(0xff, 0xa0, 0x00),
+	_M6561_RGBA8(0xf0, 0x80, 0x80),
+	_M6561_RGBA8(0x00, 0xff, 0xff),
+	_M6561_RGBA8(0xff, 0x00, 0xff),
+	_M6561_RGBA8(0x00, 0xff, 0x00),
+	_M6561_RGBA8(0x00, 0xa0, 0xff),
+	_M6561_RGBA8(0xff, 0xff, 0x00)
+*/
 };
 
 static void _m6561_init_crt(m6561_crt_t* crt, const m6561_desc_t* desc) {
-    // vis area horizontal coords must be multiple of 8
-    CHIPS_ASSERT((desc->screen.x & 7) == 0);
-    CHIPS_ASSERT((desc->screen.width & 7) == 0);
-    crt->fb = desc->framebuffer.ptr;
-    crt->vis_x0 = desc->screen.x / _M6561_PIXELS_PER_TICK;
-    crt->vis_y0 = desc->screen.y;
-    crt->vis_w = desc->screen.width / _M6561_PIXELS_PER_TICK;
-    crt->vis_h = desc->screen.height;
+    /* vis area horizontal coords must be multiple of 8 */
+    CHIPS_ASSERT((desc->vis_x & 7) == 0);
+    CHIPS_ASSERT((desc->vis_w & 7) == 0);
+    crt->rgba8_buffer = desc->rgba8_buffer;
+    crt->vis_x0 = desc->vis_x/_M6561_PIXELS_PER_TICK;
+    crt->vis_y0 = desc->vis_y;
+    crt->vis_w = desc->vis_w/_M6561_PIXELS_PER_TICK;
+    crt->vis_h = desc->vis_h;
     crt->vis_x1 = crt->vis_x0 + crt->vis_w;
     crt->vis_y1 = crt->vis_y0 + crt->vis_h;
 }
 
 void m6561_init(m6561_t* vic, const m6561_desc_t* desc) {
     CHIPS_ASSERT(vic && desc && desc->fetch_cb);
-    CHIPS_ASSERT(desc->framebuffer.ptr && (desc->framebuffer.size >= M6561_FRAMEBUFFER_SIZE_BYTES));
+    CHIPS_ASSERT((0 == desc->rgba8_buffer) || (desc->rgba8_buffer_size >= (_M6561_HTOTAL*8*_M6561_VTOTAL*sizeof(uint32_t))));
     memset(vic, 0, sizeof(*vic));
     _m6561_init_crt(&vic->crt, desc);
+    //vic->debug_vis = true;
     vic->border.enabled = _M6561_HBORDER|_M6561_VBORDER;
     vic->fetch_cb = desc->fetch_cb;
     vic->user_data = desc->user_data;
     vic->sound.sample_period = (desc->tick_hz * _M6561_FIXEDPOINT_SCALE) / desc->sound_hz;
     vic->sound.sample_counter = vic->sound.sample_period;
     vic->sound.sample_mag = desc->sound_magnitude;
-    vic->end_frame_cb = desc->end_frame_cb;   // @@@ nippur72
+    vic->end_frame_cb = desc->end_frame_cb;
 }
 
 static void _m6561_reset_crt(m6561_t* vic) {
@@ -379,131 +411,130 @@ void m6561_reset(m6561_t* vic) {
     _m6561_reset_audio(vic);
 }
 
-chips_rect_t m6561_screen(m6561_t* vic) {
+int m6561_display_width(m6561_t* vic) {
     CHIPS_ASSERT(vic);
-    return (chips_rect_t){
-        .x = 0,
-        .y = 0,
-        .width = _M6561_PIXELS_PER_TICK * (vic->debug_vis ? _M6561_HTOTAL : vic->crt.vis_w),
-        .height = vic->debug_vis ? _M6561_VTOTAL : vic->crt.vis_h,
-    };
+    return _M6561_PIXELS_PER_TICK * (vic->debug_vis ? _M6561_HTOTAL : vic->crt.vis_w);
 }
 
-uint32_t m6561_color(size_t i) {
-    CHIPS_ASSERT(i < 16);
+int m6561_display_height(m6561_t* vic) {
+    CHIPS_ASSERT(vic);
+    return vic->debug_vis ? _M6561_VTOTAL : vic->crt.vis_h;
+}
+
+uint32_t m6561_color(int i) {
+    CHIPS_ASSERT((i >= 0) && (i < 16));
     return _m6561_colors[i];
 }
 
-chips_range_t m6561_palette(void) {
-    return (chips_range_t){
-        .ptr = (void*)_m6561_colors,
-        .size = sizeof(_m6561_colors)
-    };
-}
-
-// update precomputed values when disp-related registers changed
+/* update precomputed values when disp-related registers changed */
 static void _m6561_regs_dirty(m6561_t* vic) {
-    // each column is 2 ticks
+    /* each column is 2 ticks */
     vic->rs.row_height = (vic->regs[3] & 1) ? 16 : 8;
     vic->border.left = vic->regs[0] & 0x7F;
     vic->border.right = vic->border.left + (vic->regs[2] & 0x7F) * 2;
-    vic->border.top = vic->regs[1];
+    vic->border.top = vic->regs[1] * 2;
     vic->border.bottom = vic->border.top + ((vic->regs[3]>>1) & 0x3F) * vic->rs.row_height;
     vic->gunit.inv_color = (vic->regs[15] & 8) == 0;
-    vic->gunit.bg_color = (vic->regs[15]>>4) & 0xF;
-    vic->gunit.brd_color = vic->regs[15] & 7;
-    vic->gunit.aux_color = (vic->regs[14]>>4) & 0xF;
+    vic->gunit.bg_color = _m6561_colors[(vic->regs[15]>>4) & 0xF];
+    vic->gunit.brd_color = _m6561_colors[vic->regs[15] & 7];
+    vic->gunit.aux_color = _m6561_colors[(vic->regs[14]>>4) & 0xF];
     vic->mem.g_addr_base = ((vic->regs[5] & 0xF)<<10);  // A13..A10
     vic->mem.c_addr_base = (((vic->regs[5]>>4)&0xF)<<10) | // A13..A10
                            (((vic->regs[2]>>7)&1)<<9);    // A9
     vic->sound.voice[0].enabled = 0 != (vic->regs[10] & 0x80);   vic->sound.voice[0].freq = vic->regs[10] & 0x7F;
     vic->sound.voice[1].enabled = 0 != (vic->regs[11] & 0x80);   vic->sound.voice[1].freq = vic->regs[11] & 0x7F;
     vic->sound.voice[2].enabled = 0 != (vic->regs[12] & 0x80);   vic->sound.voice[2].freq = vic->regs[12] & 0x7F;
-    vic->sound.noise.enabled    = 0 != (vic->regs[13] & 0x80);   vic->sound.noise.freq    = vic->regs[13] & 0x7F;    
+    vic->sound.noise.enabled    = 0 != (vic->regs[13] & 0x80);   vic->sound.noise.freq    = vic->regs[13] & 0x7F;
     vic->sound.volume = vic->regs[14] & 0xF;
 }
 
-static inline void _m6561_decode_4pixels(m6561_t* vic, uint8_t* dst) {
+static inline void _m6561_decode_pixels(m6561_t* vic, uint32_t* dst) {
     if (vic->border.enabled) {
-        for (size_t i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             *dst++ = vic->gunit.brd_color;
         }
     }
     else {
         uint8_t p = vic->gunit.shift;
         if (vic->gunit.color & 8) {
-            // multi-color mode
+            /* multi-color mode */
+            uint32_t fg_color = _m6561_colors[vic->gunit.color & 7];
             switch (p & 0xC0) {
                 case 0x00: dst[0] = dst[1] = vic->gunit.bg_color; break;
                 case 0x40: dst[0] = dst[1] = vic->gunit.brd_color; break;
-                case 0x80: dst[0] = dst[1] = vic->gunit.color & 7; break;
+                case 0x80: dst[0] = dst[1] = fg_color; break;
                 case 0xC0: dst[0] = dst[1] = vic->gunit.aux_color; break;
             }
             switch (p & 0x30) {
                 case 0x00: dst[2] = dst[3] = vic->gunit.bg_color; break;
                 case 0x10: dst[2] = dst[3] = vic->gunit.brd_color; break;
-                case 0x20: dst[2] = dst[3] = vic->gunit.color & 7; break;
+                case 0x20: dst[2] = dst[3] = fg_color; break;
                 case 0x30: dst[2] = dst[3] = vic->gunit.aux_color; break;
             }
         }
         else {
-            // hires mode
-            uint8_t bg, fg;
+            /* hires mode */
+            uint32_t bg, fg;
             if (vic->gunit.inv_color) {
-                bg = vic->gunit.color & 7;
+                bg = _m6561_colors[vic->gunit.color & 7];
                 fg = vic->gunit.bg_color;
             }
             else {
                 bg = vic->gunit.bg_color;
-                fg = vic->gunit.color & 7;
+                fg = _m6561_colors[vic->gunit.color & 7];
             }
             dst[0] = (p & (1<<7)) ? fg : bg;
             dst[1] = (p & (1<<6)) ? fg : bg;
             dst[2] = (p & (1<<5)) ? fg : bg;
             dst[3] = (p & (1<<4)) ? fg : bg;
         }
-        vic->gunit.shift = p<<4;
     }
 }
 
-// tick function for video output
+/* tick function for video output */
 static void _m6561_tick_video(m6561_t* vic) {
 
-    // decode pixels, each tick is 4 pixels
-    if (vic->debug_vis) {
-        const size_t x = vic->rs.h_count;
-        const size_t y = vic->rs.v_count;
-        uint8_t* dst = vic->crt.fb + (y * M6561_FRAMEBUFFER_WIDTH) + (x * _M6561_PIXELS_PER_TICK);
-        _m6561_decode_4pixels(vic, dst);
-    }
-    else if ((vic->crt.x >= vic->crt.vis_x0) && (vic->crt.x < vic->crt.vis_x1) &&
-             (vic->crt.y >= vic->crt.vis_y0) && (vic->crt.y < vic->crt.vis_y1))
-    {
-        const size_t x = vic->crt.x - vic->crt.vis_x0;
-        const size_t y = vic->crt.y - vic->crt.vis_y0;
-        uint8_t* dst = vic->crt.fb + (y * M6561_FRAMEBUFFER_WIDTH) + (x * _M6561_PIXELS_PER_TICK);
-        _m6561_decode_4pixels(vic, dst);
+    /* decode pixels, each tick is 4 pixels */
+    if (vic->crt.rgba8_buffer) {
+        int x, y, w;
+        if (vic->debug_vis) {
+            x = vic->rs.h_count;
+            y = vic->rs.v_count;
+            w = _M6561_HTOTAL;
+            uint32_t* dst = vic->crt.rgba8_buffer + (y * w + x) * _M6561_PIXELS_PER_TICK;
+            _m6561_decode_pixels(vic, dst);
+        }
+        else if ((vic->crt.x >= vic->crt.vis_x0) && (vic->crt.x < vic->crt.vis_x1) &&
+                 (vic->crt.y >= vic->crt.vis_y0) && (vic->crt.y < vic->crt.vis_y1))
+        {
+            const int x = vic->crt.x - vic->crt.vis_x0;
+            const int y = vic->crt.y - vic->crt.vis_y0;
+            const int w = vic->crt.vis_w;
+            uint32_t* dst = vic->crt.rgba8_buffer + (y * w + x) * _M6561_PIXELS_PER_TICK;
+            _m6561_decode_pixels(vic, dst);
+        }
+        vic->gunit.shift = vic->gunit.shift<<4;
     }
 
-    // display-enabled area?
+    /* display-enabled area? */
     if (vic->rs.h_count == vic->border.left) {
-        // enable fetching, but border still active for 1 tick
+        /* enable fetching, but border still active for 1 tick */
         vic->rs.vc_disabled &= ~_M6561_HVC_DISABLE;
         vic->rs.vc = vic->rs.vc_base;
     }
     if (vic->rs.h_count == (vic->border.left+1)) {
-        // switch off horizontal border
+        /* switch off horizontal border */
         vic->border.enabled &= ~_M6561_HBORDER;
     }
     if (vic->rs.h_count == (vic->border.right+1) || vic->rs.h_count == _M6561_HTOTAL - 1) {
-        // switch on horizontal border
+        /* switch on horizontal border */
         vic->border.enabled |= _M6561_HBORDER;
         vic->rs.vc_disabled |= _M6561_HVC_DISABLE;
     }
 
-    // fetch data
+    /* fetch data */
     if (vic->rs.vc & 1) {
-        // a g-access (graphics data) into pixel shifter
+        /* a g-access (graphics data) into pixel shifter */
         uint16_t addr = vic->mem.g_addr_base +
                         ((vic->mem.c_value & 0xFF) * vic->rs.row_height) +
                         vic->rs.rc;
@@ -511,7 +542,7 @@ static void _m6561_tick_video(m6561_t* vic) {
         vic->gunit.color = (vic->mem.c_value>>8) & 0xF;
     }
     else {
-        // a c-access (character code and color)
+        /* a c-access (character code and color) */
         uint16_t addr = vic->mem.c_addr_base + (vic->rs.vc>>1);
         vic->mem.c_value = vic->fetch_cb(addr, vic->user_data);
     }
@@ -519,7 +550,7 @@ static void _m6561_tick_video(m6561_t* vic) {
         vic->rs.vc = (vic->rs.vc + 1) & ((1<<11)-1);
     }
 
-    // tick horizontal and vertical counters
+    /* tick horizontal and vertical counters */
     vic->rs.h_count++;
     vic->crt.x++;
     if (vic->rs.h_count == _M6561_HTOTAL) {
@@ -691,18 +722,5 @@ uint64_t m6561_tick(m6561_t* vic, uint64_t pins) {
     return pins;
 }
 
-void m6561_snapshot_onsave(m6561_t* snapshot) {
-    CHIPS_ASSERT(snapshot);
-    snapshot->fetch_cb = 0;
-    snapshot->user_data = 0;
-    snapshot->crt.fb = 0;
-}
-
-void m6561_snapshot_onload(m6561_t* snapshot, m6561_t* sys) {
-    CHIPS_ASSERT(snapshot && sys);
-    snapshot->fetch_cb = sys->fetch_cb;
-    snapshot->user_data = sys->user_data;
-    snapshot->crt.fb = sys->crt.fb;
-}
 
 #endif

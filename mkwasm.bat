@@ -3,7 +3,7 @@
 rem abilitare il path a emcc 3.1.31 con:
 rem ..\emsdk-master\emsdk_env.bat
 
-call emcc wasm\prova.c -O3 ^
+call emcc wasm\sys_vic20.c -O3 ^
    -s EXPORTED_RUNTIME_METHODS=ccall,cwrap ^
    -s ENVIRONMENT=web ^
    -s MODULARIZE=1 ^

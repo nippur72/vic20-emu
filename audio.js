@@ -1,5 +1,5 @@
 
-const AUDIO_BUFSIZE = 4096;  // must match .c
+const AUDIO_BUFSIZE = 1024;  // must match .c
 
 let audio_buffers_queue = [];
 

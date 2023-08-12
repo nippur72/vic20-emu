@@ -11,6 +11,8 @@ typedef uint16_t word;
 
 #define CHIPS_IMPL
 
+#include "chips/chips_common.h"
+
 #include "chips/m6502.h"
 #include "chips/m6522.h"
 #include "chips/m6561.h"
@@ -19,59 +21,105 @@ typedef uint16_t word;
 #include "chips/clk.h"
 #include "systems/c1530.h"
 #include "systems/vic20.h"
-
 #include "roms/vic20-roms.h"
-
-// #include "vdp.c"
 
 vic20_desc_t desc;
 vic20_t sys;
 
-#define PIXBUFSIZE (708864)
-unsigned char pixel_buffer[PIXBUFSIZE];
-
-#define AUDIOBUFSIZE (4096)
+#define AUDIOBUFSIZE (1024)
 float audio_buffer[AUDIOBUFSIZE];
 
 void audio_cb(const float* samples, int num_samples, void* user_data) {
    byte unused = (byte) EM_ASM_INT({ audio_buf_ready($0, $1); }, samples, num_samples );
 }
 
+uint32_t vic20palette_RGBA[16] = {
+    //AABBGGRR
+    0xFF000000,   // black
+    0xFFFFFFFF,   // white
+    0xFF211FB6,   // red
+    0xFFFFFF00,   // cyan
+    0xFFFF3FB4,   // purple
+    0xFF37E244,   // green
+    0xFFFF341A,   // blue
+    0xFF1BD7DC,   // yellow
+    0xFF0054CA,   // orange
+    0xFF72B0E9,   // light orange
+    0xFF9392E7,   // light red
+    0xFFFDF79A,   // light cyan
+    0xFFFF9FE0,   // light purple
+    0xFF93E48F,   // light green
+    0xFFFF9082,   // ligth blue
+    0xFF85DEE5    // light yellow
+};
+
+#define PIXEL_WIDTH_2 2
+
+#ifdef PIXEL_WIDTH_2
+uint32_t pixel_buffer[208*264*4];
 void end_frame_cb(void* user_data) {
+   uint8_t *src = sys.vic.crt.fb;
+   uint32_t *dst = pixel_buffer;
+   uint32_t pixel;
+
+   src += 8; // center 1 char
+
+   for(int r=0;r<264;r++) {
+      for(int c=0;c<208;c++) { 
+         pixel = vic20palette_RGBA[*src];
+         dst[0]       = pixel;
+         dst[1]       = pixel;
+         dst[208*2]   = pixel; 
+         dst[208*2+1] = pixel; 
+         src++;    
+         dst+=2;
+      }   
+      src += 512 - 208;
+      dst += 208*2;
+   }
    byte unused = (byte) EM_ASM_INT({ m6561_screen_update($0); }, pixel_buffer );
 }
+#else
+uint32_t pixel_buffer[208*264];
+void end_frame_cb(void* user_data) {
+   uint8_t *src = sys.vic.crt.fb;
+   uint32_t *dst = (uint32_t *)pixel_buffer;
+   uint32_t vic20_pixel;   
+
+   src += 8; // center 1 char
+
+   for(int r=0;r<264;r++) {
+      for(int c=0;c<208;c++) { 
+         vic20_pixel = vic20palette_RGBA[*src];         
+         *dst++ = vic20_pixel;
+         src++;    
+      }   
+      src += 512-208;
+   }
+   byte unused = (byte) EM_ASM_INT({ m6561_screen_update($0); }, pixel_buffer );
+}
+#endif
 
 EMSCRIPTEN_KEEPALIVE
 void sys_init(vic20_memory_config_t config) {
 
-   desc.user_data = NULL;                            /* optional user-data for callback functions */
-
    desc.c1530_enabled = false;                       /* enable the C1530 datassette emulation */
    desc.mem_config    = config;                      /* default is VIC20_MEMCONFIG_STANDARD */
-
-   // video
-   desc.pixel_buffer = pixel_buffer;                 /* pointer to a linear RGBA8 pixel buffer, query required size via vic20_max_display_size() */
-   desc.pixel_buffer_size = PIXBUFSIZE;              /* size of the pixel buffer in bytes */
-   desc.end_frame_cb = end_frame_cb;
-
+   
    // audio
-   desc.audio_cb = audio_cb;                         /* called when audio_num_samples are ready */
-   desc.audio_buffer = audio_buffer;
-   desc.audio_num_samples = AUDIOBUFSIZE;
-   desc.audio_sample_rate = 48000;                   /* playback sample rate in Hz, default is 44100 */
-   desc.audio_volume = 1.0;                          /* audio volume of the VIC chip (0.0 .. 1.0), default is 1.0 */
+   desc.audio.callback = (chips_audio_callback_t) { audio_cb, &sys };
+   desc.audio.num_samples = AUDIOBUFSIZE;
+   desc.audio.sample_rate = 48000;
+   desc.audio.volume = 1.0;
 
    // ROM images
-   desc.rom_char = dump_vic20_characters_901460_03_bin;      /* 4 KByte character ROM dump */
-   desc.rom_basic = dump_vic20_basic_901486_01_bin;          /* 8 KByte BASIC dump */
-   desc.rom_kernal = dump_vic20_kernal_901486_07_bin;        /* 8 KByte KERNAL dump */
-   desc.rom_char_size = 4096;
-   desc.rom_basic_size = 8192;
-   desc.rom_kernal_size = 8192;
+   desc.roms.chars = (chips_range_t) { dump_vic20_characters_901460_03_bin, 4096 };
+   desc.roms.basic = (chips_range_t) { dump_vic20_basic_901486_01_bin, 8192 };
+   desc.roms.kernal = (chips_range_t) { dump_vic20_kernal_901486_07_bin, 8192 };
 
    vic20_init(&sys, &desc);
 
-   // vdp_init();
+   sys.vic.end_frame_cb = end_frame_cb;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -82,11 +130,6 @@ void sys_reset() {
 EMSCRIPTEN_KEEPALIVE
 void sys_exec_us(uint32_t msec) {
    vic20_exec(&sys, msec);
-}
-
-EMSCRIPTEN_KEEPALIVE
-void sys_exec() {
-   vic20_exec(&sys, 16666);
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -101,11 +144,12 @@ void sys_key_up(int key_code) {
 
 EMSCRIPTEN_KEEPALIVE
 void sys_quick_load(uint8_t *bytes, int num_bytes) {
-   vic20_quickload(&sys, bytes, num_bytes);
+   vic20_quickload(&sys, (chips_range_t) { bytes, num_bytes });
 }
+
 EMSCRIPTEN_KEEPALIVE
 void sys_insert_rom_cartdrige(uint8_t *bytes, int num_bytes) {
-   vic20_insert_rom_cartridge(&sys, bytes, num_bytes);
+   vic20_insert_rom_cartridge(&sys, (chips_range_t) { bytes, num_bytes });
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -136,8 +180,8 @@ void sys_set_joystick_type(vic20_joystick_type_t type) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-bool sys_insert_tape(const uint8_t* ptr, int num_bytes) {
-   return vic20_insert_tape(&sys, ptr, num_bytes);
+bool sys_insert_tape(uint8_t* ptr, int num_bytes) {
+   return vic20_insert_tape(&sys, (chips_range_t) { ptr, num_bytes } );
 }
 
 EMSCRIPTEN_KEEPALIVE

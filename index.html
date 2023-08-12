@@ -144,13 +144,15 @@
 </body>
 </html>
 
-<script type="text/javascript" src="emscripten_module.wasm.array.js"></script>
+<!--script type="text/javascript" src="emscripten_module.wasm.array.js"></script-->
 <script type="text/javascript" src="emscripten_module.js"></script>
 <script type="text/javascript" src="emscripten_wrapper.js"></script>
 
 <script>
-   load_wasm(main);
-   // main();
+   (async function () {
+      await load_wasm();
+      main();
+   })();   
 </script>
 
 <!--

@@ -342,7 +342,7 @@ void vic20_init(vic20_t* sys, const vic20_desc_t* desc) {
     }
     mem_map_rom(&sys->mem_vic, 0, 0x3000, 0x1000, sys->ram1);           // CPU: 1000..1FFF
 
-    /*
+    /*+
         A special memory mapping used to copy ROM cartridge PRG files
         into the VIC-20. Those PRG files may be merged from several files
         and have gaps in them. The data in those gaps must not
@@ -459,8 +459,7 @@ static uint64_t _vic20_tick(vic20_t* sys, uint64_t pins) {
         NOTE: the IRQ/NMI mapping is reversed from the C64
     */
     {
-        // FIXME: SERIAL PORT
-        // FIXME: RESTORE key to M6522_CA1
+        // FIXME: SERIAL PORT        
         via1_pins |= sys->via1_joy_mask | (M6522_PA0|M6522_PA1|M6522_PA7);
         if (sys->cas_port & VIC20_CASPORT_SENSE) {
             via1_pins |= M6522_PA6;
@@ -568,7 +567,7 @@ uint32_t vic20_exec(vic20_t* sys, uint32_t micro_seconds) {
 
 static uint16_t _vic20_vic_fetch(uint16_t addr, void* user_data) {
     vic20_t* sys = (vic20_t*) user_data;
-    uint16_t data = (sys->color_ram[addr & 0x03FF]<<8) | mem_rd(&sys->mem_vic, addr);
+    uint16_t data = (sys->color_ram[addr & 0x03FF]<<8) | mem_rd(&sys->mem_vic, addr & 0x3FFF);
     return data;
 }
 
